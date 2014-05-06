@@ -36,6 +36,17 @@ namespace monad {
         state_type state_;
     };
 
+    template <typename T>
+    struct is_monad : std::false_type
+    {};
+
+    template <typename T, typename State>
+    struct is_monad<monad<T, State>> : std::true_type
+    {};
+
+    template <typename T>
+    using is_monad_t = typename is_monad<T>::type;
+
     // operator==().
     template <typename T, typename State>
     bool operator== (monad<T, State> lhs, monad<T, State> rhs)
