@@ -36,6 +36,16 @@ namespace monad {
         state_type state_;
     };
 
+    // operator==().
+    template <typename T, typename State>
+    bool operator== (monad<T, State> lhs, monad<T, State> rhs)
+    { return lhs.data() == rhs.data() && lhs.state() == rhs.state(); }
+
+    // operator!=().
+    template <typename T, typename State>
+    bool operator!= (monad<T, State> lhs, monad<T, State> rhs)
+    { return !(lhs == rhs); }
+
     // operator>>=().
     template <typename T, typename State, typename Fn>
     monad<T, State> operator>>= (monad<T, State> m, Fn f)
@@ -46,12 +56,12 @@ namespace monad {
     monad<T, State> operator<<= (Fn f, monad<T, State> m)
     { return m.bind(f); }
 
-    // operator>>(). // TODO: Test.
-    template <typename T1, typename State1, typename T2, typename State2>
-    monad<T, State> operator>> (monad<T1, State1> m1, monad<T2, State2> m2)
+    // operator>>().
+    template <typename T, typename State>
+    monad<T, State> operator>> (monad<T, State> lhs, monad<T, State> rhs)
     {
-        return m.bind([m2]() {
-            return m2;
+        return lhs.bind([rhs](T) {
+            return rhs;
         });
     }
 

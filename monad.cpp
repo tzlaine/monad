@@ -102,66 +102,81 @@ std::ostream& operator<< (std::ostream& os, maybe<std::vector<T>> m)
 
 int main()
 {
-    maybe<int> m_empty(empty);
-    maybe<int> m_3(3);
-    maybe<int> m_0(0);
+    maybe<int> m_empty_i(empty);
+    maybe<int> m_0_i(0);
+    maybe<int> m_3_i(3);
+
+    maybe<double> m_empty_d(empty);
+    maybe<double> m_1_d(1.0);
+    maybe<double> m_4_d(4.0);
 
 
     // operator>>=
 
-    std::cout << m_empty << " + " << m_3 << " = "
-              << (m_empty + m_3) << "\n";
+    std::cout << m_empty_i << " + " << m_3_i << " = "
+              << (m_empty_i + m_3_i) << "\n";
 
-    std::cout << m_3 << " + " << m_empty << " = "
-              << (m_3 + m_empty) << "\n";
+    std::cout << m_3_i << " + " << m_empty_i << " = "
+              << (m_3_i + m_empty_i) << "\n";
 
-    std::cout << m_0 << " + " << m_3 << " = "
-              << (m_0 + m_3) << "\n";
+    std::cout << m_0_i << " + " << m_3_i << " = "
+              << (m_0_i + m_3_i) << "\n";
 
-    std::cout << m_0 << " + " << m_3 << " + " << m_0 << " = "
-              << (m_0 + m_3 + m_0) << "\n";
+    std::cout << m_0_i << " + " << m_3_i << " + " << m_0_i << " = "
+              << (m_0_i + m_3_i + m_0_i) << "\n";
 
-    std::cout << m_0 << " + " << m_3 << " + " << m_empty << " = "
-              << (m_0 + m_3 + m_empty) << "\n";
+    std::cout << m_0_i << " + " << m_3_i << " + " << m_empty_i << " = "
+              << (m_0_i + m_3_i + m_empty_i) << "\n";
+
+
+    // operator>>
+    std::cout << m_empty_i << " >> " << m_3_i << " = "
+              << (m_empty_i >> m_3_i) << "\n";
+
+    std::cout << m_3_i << " >> " << m_empty_i << " = "
+              << (m_3_i >> m_empty_i) << "\n";
+
+    std::cout << m_0_i << " >> " << m_3_i << " = "
+              << (m_0_i >> m_3_i) << "\n";
 
 
     // unary fmap
 
-    std::cout << "fmap(add_2<int>, " << m_empty << ") = "
-              << fmap(add_2<int>, m_empty) << "\n";
+    std::cout << "fmap(add_2<int>, " << m_empty_i << ") = "
+              << fmap(add_2<int>, m_empty_i) << "\n";
 
-    std::cout << "fmap(add_2<int>, " << m_3 << ") = "
-              << fmap(add_2<int>, m_3) << "\n";
+    std::cout << "fmap(add_2<int>, " << m_3_i << ") = "
+              << fmap(add_2<int>, m_3_i) << "\n";
 
-    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_3 << ")) = "
-              << fmap(add_2<int>, fmap(add_2<int>, m_3)) << "\n";
+    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_3_i << ")) = "
+              << fmap(add_2<int>, fmap(add_2<int>, m_3_i)) << "\n";
 
-    std::cout << "lift(add_2<int>, fmap(add_2<int>, " << m_empty << ")) = "
-              << lift(add_2<int>, fmap(add_2<int>, m_empty)) << "\n";
+    std::cout << "lift(add_2<int>, fmap(add_2<int>, " << m_empty_i << ")) = "
+              << lift(add_2<int>, fmap(add_2<int>, m_empty_i)) << "\n";
 
 
     // 2-ary fmap
 
-    std::cout << "fmap_n(add<int>, " << m_3 << ", " << m_3 << ")) = "
-              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_3, m_3) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ")) = "
+              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_3_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_empty << ", " << m_3 << ")) = "
-              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_empty, m_3) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_empty_i << ", " << m_3_i << ")) = "
+              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_empty_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_3 << ", " << m_empty << ")) = "
-              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_3, m_empty) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_empty_i << ")) = "
+              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_3_i, m_empty_i) << "\n";
 
 
     // 3-ary fmap
 
-    std::cout << "fmap_n(add<int>, " << m_3 << ", " << m_3 << ", " << m_3 << ")) = "
-              << monad::fmap_n<maybe<int>>(add3<int>, m_3, m_3, m_3) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_3_i << ")) = "
+              << monad::fmap_n<maybe<int>>(add3<int>, m_3_i, m_3_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_3 << ", " << m_empty << ", " << m_3 << ")) = "
-              << monad::fmap_n<maybe<int>>(add3<int>, m_3, m_empty, m_3) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_empty_i << ", " << m_3_i << ")) = "
+              << monad::fmap_n<maybe<int>>(add3<int>, m_3_i, m_empty_i, m_3_i) << "\n";
 
-    std::cout << "lift_n(add<int>, " << m_3 << ", " << m_3 << ", " << m_empty << ")) = "
-              << monad::lift_n<maybe<int>>(add3<int>, m_3, m_3, m_empty) << "\n";
+    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_empty_i << ")) = "
+              << monad::lift_n<maybe<int>>(add3<int>, m_3_i, m_3_i, m_empty_i) << "\n";
 
 
     // sequence
