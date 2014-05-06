@@ -89,15 +89,19 @@ namespace monad {
             return monad<OutSeq, State>{};
 
         OutSeq out_seq;
-        using value_type = typename InIter::value_type;
-        auto f = [&out_seq](value_type x) {
+        using value_type = typename InIter::value_type::value_type;
+        auto prev_monad = *first++;
+        prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
             out_seq.push_back(x);
+            return prev_monad;
         };
-        auto prev_monad = *first++ >>= f;
         while (first != last) {
             auto current_monad = *first++;
-            prev_monad = prev_monad >>= [](value_type) {
-                return current_monad >>= f;
+            prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
+                return current_monad >>= [current_monad, &out_seq](value_type x) {
+                    out_seq.push_back(x);
+                    return current_monad;
+                };
             };
         }
 

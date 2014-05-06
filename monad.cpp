@@ -23,12 +23,17 @@ namespace monad {
             state_ {}
         {}
 
-        explicit monad (T t) :
+        monad (value_type value, state_type state) :
+            value_ (value),
+            state_ (state)
+        {}
+
+        monad (T t) :
             value_ {t},
             state_ {true}
         {}
 
-        explicit monad (empty_t) :
+        monad (empty_t) :
             value_ {},
             state_ {false}
         {}
@@ -158,6 +163,16 @@ int main()
     std::cout << "lift_n(add<int>, " << m_3 << ", " << m_3 << ", " << m_empty << ")) = "
               << monad::lift_n<maybe<int>>(add3<int>, m_3, m_3, m_empty) << "\n";
 
+
+    // sequence
+
+    std::vector<maybe<int>> bad_maybes = {empty, 0, 3};
+    std::vector<maybe<int>> good_maybes = {-1, 0, 3};
+
+    std::cout << "sequence(bad_maybes=[ " << bad_maybes[0] << " " << bad_maybes[1] << " " << bad_maybes[2] << " ]) = "
+              << monad::sequence(bad_maybes.begin(), bad_maybes.end()) << "\n";
+    std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
+              << monad::sequence(good_maybes.begin(), good_maybes.end()) << "\n";
 
     std::cout << "ok.";
 
