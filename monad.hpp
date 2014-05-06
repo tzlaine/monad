@@ -114,6 +114,37 @@ namespace monad {
     monad<OutSeq, State> sequence (Range const & c)
     { return sequence(std::begin(c), std::end(c)); }
 
+    // mapM().
+    template <typename Fn,
+              typename InIter,
+              typename OutSeq = std::vector<typename InIter::value_type>>
+    auto map (Fn f, InIter first, InIter last) -> monad<OutSeq, decltype(f(*first).state())>
+    {
+        using state_type = decltype(f(*first).state());
+
+        if (first == last)
+            return monad<OutSeq, state_type>{};
+
+        OutSeq out_seq;
+        using value_type = typename InIter::value_type;
+        auto prev_monad = f(*first++);
+        prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
+            out_seq.push_back(x);
+            return prev_monad;
+        };
+        while (first != last) {
+            auto current_monad = f(*first++);
+            prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
+                return current_monad >>= [current_monad, &out_seq](value_type x) {
+                    out_seq.push_back(x);
+                    return current_monad;
+                };
+            };
+        }
+
+        return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
+    }
+
     // filterM().  Predicate Fn must have a signature of the form
     // monad<bool, ...> (typename InIter::value_type).
     template <typename Fn, typename InIter, typename OutIter>
