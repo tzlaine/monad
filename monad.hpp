@@ -144,25 +144,40 @@ namespace monad {
         return monad<OutSeq, State>{out_seq, prev_monad.state()};
     }
 
-    template <typename Range,
-              typename OutSeq = std::vector<typename Range::const_iterator::value_type::value_type>,
-              typename State = typename Range::const_iterator::value_type::state_type>
-    monad<OutSeq, State> sequence (Range const & c)
-    { return sequence(std::begin(c), std::end(c)); }
+    template <typename Range>
+    auto sequence (Range const & r) -> decltype(sequence(std::begin(r), std::end(r)))
+    { return sequence(std::begin(r), std::end(r)); }
 
-    // mapM(). // TODO: Test. // TODO: Range version.
+    namespace detail {
+
+        template <typename Fn, typename InIter>
+        struct mapped_value_type
+        {
+            using type = typename std::result_of<
+                Fn(typename InIter::value_type)
+            >::type::value_type;
+        };
+
+        template <typename Fn, typename InIter>
+        using mapped_value_type_t =
+            typename mapped_value_type<Fn, InIter>::type;
+
+    }
+
+    // mapM().  Predicate Fn must have a signature of the form
+    // monad<...> (typename InIter::value_type).
     template <typename Fn,
               typename InIter,
-              typename OutSeq = std::vector<typename InIter::value_type>>
+              typename OutSeq = std::vector<detail::mapped_value_type_t<Fn, InIter>>>
     auto map (Fn f, InIter first, InIter last) -> monad<OutSeq, decltype(f(*first).state())>
     {
+        using value_type = typename OutSeq::value_type;
         using state_type = decltype(f(*first).state());
 
         if (first == last)
             return monad<OutSeq, state_type>{};
 
         OutSeq out_seq;
-        using value_type = typename InIter::value_type;
         auto prev_monad = f(*first++);
         prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
             out_seq.push_back(x);
@@ -180,6 +195,10 @@ namespace monad {
 
         return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
     }
+
+    template <typename Fn, typename Range>
+    auto map (Fn f, Range const & r) -> decltype(map(f, std::begin(r), std::end(r)))
+    { return map(f, std::begin(r), std::end(r)); }
 
     // filterM().  Predicate Fn must have a signature of the form
     // monad<bool, ...> (typename InIter::value_type). // TODO: Test. // TODO: Range version.

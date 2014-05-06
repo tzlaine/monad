@@ -189,6 +189,51 @@ int main()
     std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
               << monad::sequence(good_maybes) << "\n";
 
+
+    std::vector<int> set_1 = {1, 2, 3};
+    std::vector<int> set_2 = {0, 2, 4};
+    std::vector<int> set_3 = {-1, -1, -1};
+
+
+    // map
+
+    auto map_nonzero = [](int x) {
+        maybe<int> retval = x ? maybe<int>{x} : maybe<int>{empty};
+        return retval;
+    };
+    auto map_odd = [](int x) {
+        maybe<int> retval = x % 2 ? maybe<int>{x} : maybe<int>{empty};
+        return retval;
+    };
+
+    std::cout << "map(map_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map(map_nonzero, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "map(map_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map(map_nonzero, set_1) << "\n";
+    std::cout << "map(map_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::map(map_nonzero, set_2.begin(), set_2.end()) << "\n";
+    std::cout << "map(map_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::map(map_nonzero, set_2) << "\n";
+    std::cout << "map(map_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map(map_odd, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "map(map_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map(map_odd, set_1) << "\n";
+
+#if 0
+    // zip
+
+    auto zip_nonzero = [](int lhs, int rhs) {
+        int sum = lhs + rhs;
+        maybe<int> retval = sum ? maybe<int>{sum} : maybe<int>{empty};
+        return retval;
+    };
+
+    std::cout << "zip(zip_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_2=[ "
+              << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::zip(zip_nonzero, set_1.begin(), set_1.end(), set_2.begin()) << "\n";
+#endif
+
+
     std::cout << "ok.";
 
     return 0;
