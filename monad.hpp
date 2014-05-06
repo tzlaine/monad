@@ -36,11 +36,24 @@ namespace monad {
         state_type state_;
     };
 
+    // operator>>=().
     template <typename T, typename State, typename Fn>
     monad<T, State> operator>>= (monad<T, State> m, Fn f)
     { return m.bind(f); }
 
-    // TODO: operator>>().
+    // operator<<=().
+    template <typename T, typename State, typename Fn>
+    monad<T, State> operator<<= (Fn f, monad<T, State> m)
+    { return m.bind(f); }
+
+    // operator>>(). // TODO: Test.
+    template <typename T1, typename State1, typename T2, typename State2>
+    monad<T, State> operator>> (monad<T1, State1> m1, monad<T2, State2> m2)
+    {
+        return m.bind([m2]() {
+            return m2;
+        });
+    }
 
     // TODO: join().
 
@@ -118,7 +131,7 @@ namespace monad {
     monad<OutSeq, State> sequence (Range const & c)
     { return sequence(std::begin(c), std::end(c)); }
 
-    // mapM().
+    // mapM(). // TODO: Test. // TODO: Range version.
     template <typename Fn,
               typename InIter,
               typename OutSeq = std::vector<typename InIter::value_type>>
@@ -150,7 +163,7 @@ namespace monad {
     }
 
     // filterM().  Predicate Fn must have a signature of the form
-    // monad<bool, ...> (typename InIter::value_type).
+    // monad<bool, ...> (typename InIter::value_type). // TODO: Test. // TODO: Range version.
     template <typename Fn, typename InIter, typename OutIter>
     Fn filter (Fn f, InIter first, InIter last, OutIter out)
     {
@@ -164,7 +177,7 @@ namespace monad {
     }
 
     // foldM().  Predicate Fn must have a signature of the form
-    // monad<T, ...> (T, T).
+    // monad<T, ...> (T, T). // TODO: Test. // TODO: Range version.
     template <typename Fn, typename Iter>
     typename Iter::value_type
     fold (Fn f,
