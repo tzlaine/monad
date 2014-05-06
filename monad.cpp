@@ -14,9 +14,9 @@ namespace monad {
     template <typename T>
     struct monad<T, bool>
     {
-        typedef monad<T, bool> this_type;
-        typedef T value_type;
-        typedef bool state_type;
+        using this_type = monad<T, bool>;
+        using value_type = T;
+        using state_type = bool;
 
         monad () :
             value_ {},
@@ -77,6 +77,21 @@ std::ostream& operator<< (std::ostream& os, maybe<T> m)
         os << "[empty]";
     else
         os << m.value_;
+    return os;
+}
+
+template <typename T>
+std::ostream& operator<< (std::ostream& os, maybe<std::vector<T>> m)
+{
+    if (!m.state_) {
+        os << "[empty]";
+    } else {
+        os << "[ ";
+        for (auto x : m.value()) {
+            os << x << ' ';
+        }
+        os << ']';
+    }
     return os;
 }
 

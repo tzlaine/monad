@@ -1,7 +1,7 @@
 #ifndef MONAD_HPP_INCLUDED_
 #define MONAD_HPP_INCLUDED_
 
-#include <cstddef>
+#include <vector>
 
 
 namespace monad {
@@ -18,22 +18,22 @@ namespace monad {
             state_ ()
         {}
 
-        monad (T value, State state) :
+        monad (value_type value, state_type state) :
             value_ (value),
             state_ (state)
         {}
 
-        T value () const
+        value_type value () const
         { return value_; }
 
-        State state () const
+        state_type state () const
         { return state_; }
 
         template <typename Fn>
         this_type bind (Fn f) const;
 
-        T value_;
-        State state_;
+        value_type value_;
+        state_type state_;
     };
 
     template <typename T, typename State, typename Fn>
@@ -44,7 +44,7 @@ namespace monad {
     template <typename T, typename State, typename Fn>
     monad<T, State> fmap (Fn f, monad<T, State> m)
     {
-        return m >>= [=](T x) {
+        return m >>= [f](T x) {
             return monad<T, State>{f(x)};
         };
     }
@@ -80,7 +80,9 @@ namespace monad {
     { return fmap_n<ReturnMonad>(f, monads...); }
 
     // sequence().
-    template <typename State, typename InIter, typename OutSeq>
+    template <typename InIter,
+              typename OutSeq = std::vector<typename InIter::value_type::value_type>,
+              typename State = typename InIter::value_type::state_type>
     monad<OutSeq, State> sequence (InIter first, InIter last)
     {
         if (first == last)
@@ -88,13 +90,13 @@ namespace monad {
 
         OutSeq out_seq;
         using value_type = typename InIter::value_type;
-        auto f = [=] (value_type x) {
+        auto f = [&out_seq](value_type x) {
             out_seq.push_back(x);
         };
         auto prev_monad = *first++ >>= f;
         while (first != last) {
             auto current_monad = *first++;
-            prev_monad = prev_monad >>= [=] (value_type x) {
+            prev_monad = prev_monad >>= [](value_type) {
                 return current_monad >>= f;
             };
         }
@@ -109,7 +111,7 @@ namespace monad {
     {
         while (first != last) {
             auto value = *first++;
-            f(value) >>= [=](bool b) {
+            f(value) >>= [value, &out](bool b) {
                 if (b)
                     *out++ = value;
             };
@@ -129,7 +131,7 @@ namespace monad {
         using value_type = typename monad_type::value_type;
         monad_type retval{initial_value};
         while (first != last) {
-            retval = retval >>= [=](value_type x) {
+            retval = retval >>= [f, &first](value_type x) {
                 return monad_type{f(x, *first++)};
             };
         }
@@ -142,8 +144,8 @@ namespace monad {
     monad_type operator op (monad_type lhs, monad_type rhs)         \
     {                                                               \
         using value_type = monad_type::value_type;                  \
-        return lhs >>= [=](value_type x) {                          \
-            return rhs >>= [=](value_type y) {                      \
+        return lhs >>= [lhs, rhs](value_type x) {                   \
+            return rhs >>= [x](value_type y) {                      \
                 return monad_type{x + y};                           \
             };                                                      \
         };                                                          \
@@ -153,8 +155,8 @@ namespace monad {
     monad_type name (monad_type lhs, monad_type rhs)                \
     {                                                               \
         using value_type = monad_type::value_type;                  \
-        return lhs >>= [=](value_type x) {                          \
-            return rhs >>= [=](value_type y) {                      \
+        return lhs >>= [lhs, rhs](value_type x) {                   \
+            return rhs >>= [x](value_type y) {                      \
                 return monad_type{x + y};                           \
             };                                                      \
         };                                                          \
@@ -170,8 +172,8 @@ namespace monad {
         using monad_type =                                          \
             monad_name<BOOST_PP_ENUM_PARAMS(num_template_args, T)>; \
         using value_type = typename monad_type::value_type;         \
-        return lhs >>= [=](value_type x) {                          \
-            return rhs >>= [=](value_type y) {                      \
+        return lhs >>= [lhs, rhs](value_type x) {                   \
+            return rhs >>= [x](value_type y) {                      \
                 return monad_type{x + y};                           \
             };                                                      \
         };                                                          \
@@ -187,8 +189,8 @@ namespace monad {
         using monad_type =                                              \
             monad_name<BOOST_PP_ENUM_PARAMS(num_template_args, T)>;     \
         using value_type = typename monad_type::value_type;             \
-        return lhs >>= [=](value_type x) {                              \
-            return rhs >>= [=](value_type y) {                          \
+        return lhs >>= [lhs, rhs](value_type x) {                       \
+            return rhs >>= [x](value_type y) {                          \
                 return monad_type{x + y};                               \
             };                                                          \
         };                                                              \
