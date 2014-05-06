@@ -106,10 +106,6 @@ int main()
     maybe<int> m_0_i(0);
     maybe<int> m_3_i(3);
 
-    maybe<double> m_empty_d(empty);
-    maybe<double> m_1_d(1.0);
-    maybe<double> m_4_d(4.0);
-
 
     // operator>>=
 
