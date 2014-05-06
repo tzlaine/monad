@@ -170,9 +170,13 @@ int main()
     std::vector<maybe<int>> good_maybes = {-1, 0, 3};
 
     std::cout << "sequence(bad_maybes=[ " << bad_maybes[0] << " " << bad_maybes[1] << " " << bad_maybes[2] << " ]) = "
+              << monad::sequence(bad_maybes) << "\n";
+    std::cout << "sequence(bad_maybes=[ " << bad_maybes[0] << " " << bad_maybes[1] << " " << bad_maybes[2] << " ]) = "
               << monad::sequence(bad_maybes.begin(), bad_maybes.end()) << "\n";
     std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
               << monad::sequence(good_maybes.begin(), good_maybes.end()) << "\n";
+    std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
+              << monad::sequence(good_maybes) << "\n";
 
     std::cout << "ok.";
 

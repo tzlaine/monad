@@ -108,6 +108,12 @@ namespace monad {
         return monad<OutSeq, State>{out_seq, prev_monad.state()};
     }
 
+    template <typename Range,
+              typename OutSeq = std::vector<typename Range::const_iterator::value_type::value_type>,
+              typename State = typename Range::const_iterator::value_type::state_type>
+    monad<OutSeq, State> sequence (Range const & c)
+    { return sequence(std::begin(c), std::end(c)); }
+
     // filterM().  Predicate Fn must have a signature of the form
     // monad<bool, ...> (typename InIter::value_type).
     template <typename Fn, typename InIter, typename OutIter>
