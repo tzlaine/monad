@@ -40,6 +40,10 @@ namespace monad {
     monad<T, State> operator>>= (monad<T, State> m, Fn f)
     { return m.bind(f); }
 
+    // TODO: operator>>().
+
+    // TODO: join().
+
     // Unary fmap().
     template <typename T, typename State, typename Fn>
     monad<T, State> fmap (Fn f, monad<T, State> m)
@@ -178,6 +182,10 @@ namespace monad {
         }
         return retval;
     }
+
+    // TODO: zipWithM()
+
+    // TODO: mapAndUnzipM()
 
 }
 
