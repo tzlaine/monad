@@ -76,8 +76,6 @@ namespace monad {
         });
     }
 
-    // TODO: join().
-
     // Unary fmap().
     template <typename T, typename State, typename Fn>
     monad<T, State> fmap (Fn f, monad<T, State> m)
@@ -197,6 +195,58 @@ namespace monad {
         }
     }
 
+    namespace detail {
+
+        template <typename Fn, typename InIter1, typename InIter2>
+        struct zip_value_type
+        {
+            using type = typename std::result_of<
+                Fn(typename InIter1::value_type, typename InIter2::value_type)
+            >::type;
+        };
+
+        template <typename Fn, typename InIter1, typename InIter2>
+        using zip_value_type_t =
+            typename zip_value_type<Fn, InIter1, InIter2>::type;
+
+    }
+
+    // zipWithM().  Predicate Fn must have a signature of the form
+    // monad<bool, ...> (typename InIter1::value_type, typename InIter2::value_type). // TODO: Test. // TODO: Range version.
+    template <
+        typename Fn,
+        typename InIter1,
+        typename InIter2,
+        typename OutSeq = std::vector<detail::zip_value_type_t<Fn, InIter1, InIter2>>
+    >
+    auto zip (Fn f, InIter1 first1, InIter1 last1, InIter2 first2) ->
+        monad<OutSeq, decltype(f(*first1, *first2).state())>
+    {
+        using value_type = typename OutSeq::value_type;
+        using state_type = decltype(f(*first1, *first2).state());
+
+        if (first1 == last1)
+            return monad<OutSeq, state_type>{};
+
+        OutSeq out_seq;
+        auto prev_monad = f(*first1++, *first2++);
+        prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
+            out_seq.push_back(x);
+            return prev_monad;
+        };
+        while (first1 != last1) {
+            auto current_monad = f(*first1++, *first2++);
+            prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
+                return current_monad >>= [current_monad, &out_seq](value_type x) {
+                    out_seq.push_back(x);
+                    return current_monad;
+                };
+            };
+        }
+
+        return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
+    }
+
     // foldM().  Predicate Fn must have a signature of the form
     // monad<T, ...> (T, T). // TODO: Test. // TODO: Range version.
     template <typename Fn, typename Iter>
@@ -216,8 +266,6 @@ namespace monad {
         }
         return retval;
     }
-
-    // TODO: zipWithM()
 
     // TODO: mapAndUnzipM()
 
