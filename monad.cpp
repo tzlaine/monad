@@ -237,11 +237,30 @@ int main()
               << monad::fold(fold_quotient, 1000.0, set_1.begin(), set_1.end()) << "\n";
     std::cout << "fold(fold_quotient, 1000, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
               << monad::fold(fold_quotient, 1000, set_1) << "\n";
-
     std::cout << "fold(fold_quotient, 1000, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
               << monad::fold(fold_quotient, 1000, set_2.begin(), set_2.end()) << "\n";
     std::cout << "fold(fold_quotient, 1000, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
               << monad::fold(fold_quotient, 1000, set_2) << "\n";
+
+
+    // filter
+
+    auto filter_odd = [](int x) {
+        return maybe<bool>{x % 2 == 1};
+    };
+    auto filter_flag_zero = [](int x) {
+        maybe<bool> retval = x ? maybe<bool>{true} : maybe<bool>{empty};
+        return retval;
+    };
+
+    std::cout << "filter(filter_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::filter(filter_odd, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "filter(filter_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::filter(filter_odd, set_1) << "\n";
+    std::cout << "filter(filter_flag_zero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::filter(filter_flag_zero, set_2.begin(), set_2.end()) << "\n";
+    std::cout << "filter(filter_flag_zero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::filter(filter_flag_zero, set_2) << "\n";
 
     // zip
 

@@ -122,17 +122,17 @@ namespace monad {
 
     // sequence().
     template <
-        typename InIter,
-        typename OutSeq = std::vector<typename InIter::value_type::value_type>,
-        typename State = typename InIter::value_type::state_type
+        typename Iter,
+        typename OutSeq = std::vector<typename Iter::value_type::value_type>,
+        typename State = typename Iter::value_type::state_type
     >
-    monad<OutSeq, State> sequence (InIter first, InIter last)
+    monad<OutSeq, State> sequence (Iter first, Iter last)
     {
         if (first == last)
             return monad<OutSeq, State>{};
 
         OutSeq out_seq;
-        using value_type = typename InIter::value_type::value_type;
+        using value_type = typename Iter::value_type::value_type;
         auto prev_monad = *first++;
         prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
             out_seq.push_back(x);
@@ -159,30 +159,30 @@ namespace monad {
 
     namespace detail {
 
-        template <typename Fn, typename InIter>
+        template <typename Fn, typename Iter>
         struct mapped_value_type
         {
             using type = typename std::result_of<
-                Fn(typename InIter::value_type)
+                Fn(typename Iter::value_type)
             >::type::value_type;
         };
 
-        template <typename Fn, typename InIter>
+        template <typename Fn, typename Iter>
         using mapped_value_type_t =
-            typename mapped_value_type<Fn, InIter>::type;
+            typename mapped_value_type<Fn, Iter>::type;
 
     }
 
     // mapM().  Predicate Fn must have a signature of the form
-    // monad<...> (typename InIter::value_type).
+    // monad<...> (typename Iter::value_type).
     template <
         typename Fn,
-        typename InIter,
+        typename Iter,
         typename OutSeq = std::vector<
-            detail::mapped_value_type_t<Fn, InIter>
+            detail::mapped_value_type_t<Fn, Iter>
         >
     >
-    auto map (Fn f, InIter first, InIter last) ->
+    auto map (Fn f, Iter first, Iter last) ->
         monad<OutSeq, decltype(f(*first).state())>
     {
         using value_type = typename OutSeq::value_type;
@@ -217,18 +217,18 @@ namespace monad {
     { return map(f, std::begin(r), std::end(r)); }
 
     // mapAndUnzipM().  Predicate Fn must have a signature of the form
-    // monad<std::pair<...>, ...> (typename InIter::value_type). // TODO: Test. // TODO: Range version.
+    // monad<std::pair<...>, ...> (typename Iter::value_type). // TODO: Test. // TODO: Range version.
     template <
         typename Fn,
-        typename InIter,
+        typename Iter,
         typename FirstOutSeq = std::vector<
-            typename detail::mapped_value_type_t<Fn, InIter>::first_type
+            typename detail::mapped_value_type_t<Fn, Iter>::first_type
         >,
         typename SecondOutSeq = std::vector<
-            typename detail::mapped_value_type_t<Fn, InIter>::second_type
+            typename detail::mapped_value_type_t<Fn, Iter>::second_type
         >
     >
-    auto map_unzip (Fn f, InIter first, InIter last) ->
+    auto map_unzip (Fn f, Iter first, Iter last) ->
         monad<std::pair<FirstOutSeq, SecondOutSeq>, decltype(f(*first).state())>
     {
         using first_value_type = typename FirstOutSeq::value_type;
@@ -264,46 +264,75 @@ namespace monad {
     }
 
     // filterM().  Predicate Fn must have a signature of the form
-    // monad<bool, ...> (typename InIter::value_type). // TODO: Test. // TODO: Range version.
-    template <typename Fn, typename InIter, typename OutIter>
-    Fn filter (Fn f, InIter first, InIter last, OutIter out)
+    // monad<bool, ...> (typename Iter::value_type). // TODO: Test.
+    template <
+        typename Fn,
+        typename Iter,
+        typename OutSeq = std::vector<typename Iter::value_type>
+    >
+    auto filter (Fn f, Iter first, Iter last) ->
+        monad<OutSeq, decltype(f(*first).state())>
     {
+        using state_type = decltype(f(*first).state());
+
+        if (first == last)
+            return monad<OutSeq, state_type>{};
+
+        OutSeq out_seq;
+        auto value = *first++;
+        auto prev_monad = f(value);
+        prev_monad = prev_monad >>= [prev_monad, value, &out_seq](bool b) {
+            if (b)
+                out_seq.push_back(value);
+            return prev_monad;
+        };
         while (first != last) {
-            auto value = *first++;
-            f(value) >>= [value, &out](bool b) {
-                if (b)
-                    *out++ = value;
+            value = *first++;
+            auto current_monad = f(value);
+            prev_monad = prev_monad >>= [current_monad, value, &out_seq](bool) {
+                return current_monad >>= [current_monad, value, &out_seq](bool b) {
+                    if (b)
+                        out_seq.push_back(value);
+                    return current_monad;
+                };
             };
         }
+
+        return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
     }
+
+    template <typename Fn, typename Range>
+    auto filter (Fn f, Range const & r) ->
+        decltype(filter(f, std::begin(r), std::end(r)))
+    { return filter(f, std::begin(r), std::end(r)); }
 
     namespace detail {
 
-        template <typename Fn, typename InIter1, typename InIter2>
+        template <typename Fn, typename Iter1, typename Iter2>
         struct zip_value_type
         {
             using type = typename std::result_of<
-                Fn(typename InIter1::value_type, typename InIter2::value_type)
+                Fn(typename Iter1::value_type, typename Iter2::value_type)
             >::type;
         };
 
-        template <typename Fn, typename InIter1, typename InIter2>
+        template <typename Fn, typename Iter1, typename Iter2>
         using zip_value_type_t =
-            typename zip_value_type<Fn, InIter1, InIter2>::type;
+            typename zip_value_type<Fn, Iter1, Iter2>::type;
 
     }
 
     // zipWithM().  Predicate Fn must have a signature of the form
-    // monad<...> (typename InIter1::value_type, typename InIter2::value_type).
+    // monad<...> (typename Iter1::value_type, typename Iter2::value_type).
     template <
         typename Fn,
-        typename InIter1,
-        typename InIter2,
+        typename Iter1,
+        typename Iter2,
         typename OutSeq = std::vector<
-            detail::zip_value_type_t<Fn, InIter1, InIter2>
+            detail::zip_value_type_t<Fn, Iter1, Iter2>
         >
     >
-    auto zip (Fn f, InIter1 first1, InIter1 last1, InIter2 first2) ->
+    auto zip (Fn f, Iter1 first1, Iter1 last1, Iter2 first2) ->
         monad<OutSeq, decltype(f(*first1, *first2).state())>
     {
         using value_type = typename OutSeq::value_type;
