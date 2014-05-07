@@ -92,7 +92,10 @@ namespace monad {
 
     namespace detail {
 
-        template <std::size_t N, typename ReturnMonad, typename Fn, typename ...Monads>
+        template <std::size_t N,
+                  typename ReturnMonad,
+                  typename Fn,
+                  typename ...Monads>
         struct fmap_n_impl;
 
 #define MONAD_FMAP_N_MAX_ARITY 10
@@ -104,10 +107,12 @@ namespace monad {
     template <typename ReturnMonad, typename Fn, typename ...Monads>
     ReturnMonad fmap_n (Fn f, Monads... monads)
     {
-        return detail::fmap_n_impl<sizeof...(Monads), ReturnMonad, Fn, Monads...>::call(
-            f,
-            monads...
-        );
+        return detail::fmap_n_impl<
+            sizeof...(Monads),
+            ReturnMonad,
+            Fn,
+            Monads...
+        >::call(f, monads...);
     }
 
     // N-ary liftM().
@@ -116,9 +121,11 @@ namespace monad {
     { return fmap_n<ReturnMonad>(f, monads...); }
 
     // sequence().
-    template <typename InIter,
-              typename OutSeq = std::vector<typename InIter::value_type::value_type>,
-              typename State = typename InIter::value_type::state_type>
+    template <
+        typename InIter,
+        typename OutSeq = std::vector<typename InIter::value_type::value_type>,
+        typename State = typename InIter::value_type::state_type
+    >
     monad<OutSeq, State> sequence (InIter first, InIter last)
     {
         if (first == last)
@@ -134,7 +141,8 @@ namespace monad {
         while (first != last) {
             auto current_monad = *first++;
             prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
-                return current_monad >>= [current_monad, &out_seq](value_type x) {
+                return current_monad >>=
+                [current_monad, &out_seq](value_type x) {
                     out_seq.push_back(x);
                     return current_monad;
                 };
@@ -145,7 +153,8 @@ namespace monad {
     }
 
     template <typename Range>
-    auto sequence (Range const & r) -> decltype(sequence(std::begin(r), std::end(r)))
+    auto sequence (Range const & r) ->
+        decltype(sequence(std::begin(r), std::end(r)))
     { return sequence(std::begin(r), std::end(r)); }
 
     namespace detail {
@@ -166,10 +175,15 @@ namespace monad {
 
     // mapM().  Predicate Fn must have a signature of the form
     // monad<...> (typename InIter::value_type).
-    template <typename Fn,
-              typename InIter,
-              typename OutSeq = std::vector<detail::mapped_value_type_t<Fn, InIter>>>
-    auto map (Fn f, InIter first, InIter last) -> monad<OutSeq, decltype(f(*first).state())>
+    template <
+        typename Fn,
+        typename InIter,
+        typename OutSeq = std::vector<
+            detail::mapped_value_type_t<Fn, InIter>
+        >
+    >
+    auto map (Fn f, InIter first, InIter last) ->
+        monad<OutSeq, decltype(f(*first).state())>
     {
         using value_type = typename OutSeq::value_type;
         using state_type = decltype(f(*first).state());
@@ -186,7 +200,8 @@ namespace monad {
         while (first != last) {
             auto current_monad = f(*first++);
             prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
-                return current_monad >>= [current_monad, &out_seq](value_type x) {
+                return current_monad >>=
+                [current_monad, &out_seq](value_type x) {
                     out_seq.push_back(x);
                     return current_monad;
                 };
@@ -197,7 +212,8 @@ namespace monad {
     }
 
     template <typename Fn, typename Range>
-    auto map (Fn f, Range const & r) -> decltype(map(f, std::begin(r), std::end(r)))
+    auto map (Fn f, Range const & r) ->
+        decltype(map(f, std::begin(r), std::end(r)))
     { return map(f, std::begin(r), std::end(r)); }
 
     // filterM().  Predicate Fn must have a signature of the form
@@ -236,7 +252,9 @@ namespace monad {
         typename Fn,
         typename InIter1,
         typename InIter2,
-        typename OutSeq = std::vector<detail::zip_value_type_t<Fn, InIter1, InIter2>>
+        typename OutSeq = std::vector<
+            detail::zip_value_type_t<Fn, InIter1, InIter2>
+        >
     >
     auto zip (Fn f, InIter1 first1, InIter1 last1, InIter2 first2) ->
         monad<OutSeq, decltype(f(*first1, *first2).state())>
@@ -256,7 +274,8 @@ namespace monad {
         while (first1 != last1) {
             auto current_monad = f(*first1++, *first2++);
             prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
-                return current_monad >>= [current_monad, &out_seq](value_type x) {
+                return current_monad >>=
+                [current_monad, &out_seq](value_type x) {
                     out_seq.push_back(x);
                     return current_monad;
                 };
@@ -336,7 +355,7 @@ namespace monad {
         };                                                          \
     }
 
-#define MONAD_TEMPLATE_NAMED_BINARY_OP(name, op, monad_name, num_template_args) \
+#define MONAD_TEMPLATE_NAMED_BINARY_OP(name, op, monad_name, num_template_args)\
     template <BOOST_PP_ENUM_PARAMS(num_template_args, typename T)>      \
     monad_name<BOOST_PP_ENUM_PARAMS(num_template_args, T)>              \
     name (                                                              \
