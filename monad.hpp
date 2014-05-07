@@ -294,7 +294,7 @@ namespace monad {
     }
 
     // zipWithM().  Predicate Fn must have a signature of the form
-    // monad<bool, ...> (typename InIter1::value_type, typename InIter2::value_type). // TODO: Test. // TODO: Range version.
+    // monad<...> (typename InIter1::value_type, typename InIter2::value_type).
     template <
         typename Fn,
         typename InIter1,
@@ -331,6 +331,11 @@ namespace monad {
 
         return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
     }
+
+    template <typename Fn, typename Range1, typename Range2>
+    auto zip (Fn f, Range1 const & r1, Range2 const & r2) ->
+        decltype(zip(f, std::begin(r1), std::end(r1), std::begin(r2)))
+    { return zip(f, std::begin(r1), std::end(r1), std::begin(r2)); }
 
     // foldM().  Predicate Fn must have a signature of the form
     // monad<...> (T, typename Iter::value_type::value_type).

@@ -233,8 +233,8 @@ int main()
               << monad::fold(fold_product, 1, set_1.begin(), set_1.end()) << "\n";
     std::cout << "fold(fold_product, 1, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
               << monad::fold(fold_product, 1, set_1) << "\n";
-    std::cout << "fold(fold_quotient, 1000, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::fold(fold_quotient, 1000, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "fold(fold_quotient, 1000.0, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::fold(fold_quotient, 1000.0, set_1.begin(), set_1.end()) << "\n";
     std::cout << "fold(fold_quotient, 1000, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
               << monad::fold(fold_quotient, 1000, set_1) << "\n";
 
@@ -243,19 +243,26 @@ int main()
     std::cout << "fold(fold_quotient, 1000, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
               << monad::fold(fold_quotient, 1000, set_2) << "\n";
 
-#if 0
     // zip
 
-    auto zip_nonzero = [](int lhs, int rhs) {
+    auto zip_sum_nonzero = [](int lhs, int rhs) {
         int sum = lhs + rhs;
         maybe<int> retval = sum ? maybe<int>{sum} : maybe<int>{empty};
         return retval;
     };
 
-    std::cout << "zip(zip_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_2=[ "
+    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_2=[ "
               << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::zip(zip_nonzero, set_1.begin(), set_1.end(), set_2.begin()) << "\n";
-#endif
+              << monad::zip(zip_sum_nonzero, set_1.begin(), set_1.end(), set_2.begin()) << "\n";
+    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_2=[ "
+              << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::zip(zip_sum_nonzero, set_1, set_2) << "\n";
+    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_3=[ "
+              << set_3[0] << " " << set_3[1] << " " << set_3[2] << " ]) = "
+              << monad::zip(zip_sum_nonzero, set_1.begin(), set_1.end(), set_3.begin()) << "\n";
+    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_3=[ "
+              << set_3[0] << " " << set_3[1] << " " << set_3[2] << " ]) = "
+              << monad::zip(zip_sum_nonzero, set_1, set_3) << "\n";
 
 
     std::cout << "ok.";
