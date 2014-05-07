@@ -216,6 +216,53 @@ namespace monad {
         decltype(map(f, std::begin(r), std::end(r)))
     { return map(f, std::begin(r), std::end(r)); }
 
+    // mapAndUnzipM().  Predicate Fn must have a signature of the form
+    // monad<std::pair<...>, ...> (typename InIter::value_type). // TODO: Test. // TODO: Range version.
+    template <
+        typename Fn,
+        typename InIter,
+        typename FirstOutSeq = std::vector<
+            typename detail::mapped_value_type_t<Fn, InIter>::first_type
+        >,
+        typename SecondOutSeq = std::vector<
+            typename detail::mapped_value_type_t<Fn, InIter>::second_type
+        >
+    >
+    auto map_unzip (Fn f, InIter first, InIter last) ->
+        monad<std::pair<FirstOutSeq, SecondOutSeq>, decltype(f(*first).state())>
+    {
+        using first_value_type = typename FirstOutSeq::value_type;
+        using second_value_type = typename SecondOutSeq::value_type;
+        using value_type = std::pair<first_value_type, second_value_type>;
+        using state_type = decltype(f(*first).state());
+        using monad_type =
+            monad<std::pair<FirstOutSeq, SecondOutSeq>, state_type>;
+
+        if (first == last)
+            return monad_type{};
+
+        std::pair<FirstOutSeq, SecondOutSeq> out_seqs;
+        auto prev_monad = f(*first++);
+        prev_monad = prev_monad >>= [prev_monad, &out_seqs](value_type x) {
+            out_seqs.first.push_back(x.first);
+            out_seqs.second.push_back(x.second);
+            return prev_monad;
+        };
+        while (first != last) {
+            auto current_monad = f(*first++);
+            prev_monad = prev_monad >>= [current_monad, &out_seqs](value_type) {
+                return current_monad >>=
+                [current_monad, &out_seqs](value_type x) {
+                    out_seqs.first.push_back(x.first);
+                    out_seqs.second.push_back(x.second);
+                    return current_monad;
+                };
+            };
+        }
+
+        return monad_type{out_seqs, prev_monad.state()};
+    }
+
     // filterM().  Predicate Fn must have a signature of the form
     // monad<bool, ...> (typename InIter::value_type). // TODO: Test. // TODO: Range version.
     template <typename Fn, typename InIter, typename OutIter>
@@ -311,8 +358,6 @@ namespace monad {
     auto fold (Fn f, T initial_value, Range const & r) ->
         decltype(fold(f, initial_value, std::begin(r), std::end(r)))
     { return fold(f, initial_value, std::begin(r), std::end(r)); }
-
-    // TODO: mapAndUnzipM()
 
 }
 
