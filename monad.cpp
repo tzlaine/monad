@@ -219,6 +219,30 @@ int main()
     std::cout << "map(map_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
               << monad::map(map_odd, set_1) << "\n";
 
+    // fold
+
+    auto fold_product = [](int lhs, int rhs) {
+        return maybe<int>{lhs * rhs};
+    };
+    auto fold_quotient = [](int lhs, int rhs) {
+        maybe<int> retval = rhs ? maybe<int>{lhs / rhs} : maybe<int>{empty};
+        return retval;
+    };
+
+    std::cout << "fold(fold_product, 1, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::fold(fold_product, 1, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "fold(fold_product, 1, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::fold(fold_product, 1, set_1) << "\n";
+    std::cout << "fold(fold_quotient, 1000, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::fold(fold_quotient, 1000, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "fold(fold_quotient, 1000, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::fold(fold_quotient, 1000, set_1) << "\n";
+
+    std::cout << "fold(fold_quotient, 1000, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::fold(fold_quotient, 1000, set_2.begin(), set_2.end()) << "\n";
+    std::cout << "fold(fold_quotient, 1000, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::fold(fold_quotient, 1000, set_2) << "\n";
+
 #if 0
     // zip
 

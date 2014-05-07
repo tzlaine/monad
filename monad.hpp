@@ -267,24 +267,31 @@ namespace monad {
     }
 
     // foldM().  Predicate Fn must have a signature of the form
-    // monad<T, ...> (T, T). // TODO: Test. // TODO: Range version.
-    template <typename Fn, typename Iter>
-    typename Iter::value_type
-    fold (Fn f,
-          typename Iter::value_type::value_type initial_value,
-          Iter first,
-          Iter last)
+    // monad<...> (T, typename Iter::value_type::value_type).
+    template <typename Fn, typename T, typename Iter>
+    auto fold (Fn f, T initial_value, Iter first, Iter last) ->
+        decltype(f(initial_value, *first))
     {
-        using monad_type = typename Iter::value_type;
+        using monad_type = decltype(f(initial_value, *first));
         using value_type = typename monad_type::value_type;
-        monad_type retval{initial_value};
+
+        if (first == last)
+            return monad_type{};
+
+        monad_type retval = f(initial_value, *first++);
         while (first != last) {
-            retval = retval >>= [f, &first](value_type x) {
-                return monad_type{f(x, *first++)};
+            auto y = *first++;
+            retval = retval >>= [f, y](value_type x) {
+                return f(x, y);
             };
         }
         return retval;
     }
+
+    template <typename Fn, typename T, typename Range>
+    auto fold (Fn f, T initial_value, Range const & r) ->
+        decltype(fold(f, initial_value, std::begin(r), std::end(r)))
+    { return fold(f, initial_value, std::begin(r), std::end(r)); }
 
     // TODO: mapAndUnzipM()
 
