@@ -200,11 +200,7 @@ namespace monad {
             typename Iter::value_type,
             OutSeq,
             State
-        >(
-            [](Iter it) {return *it;},
-            first,
-            last
-        );
+        >([](Iter it) {return *it;}, first, last);
     }
 
     template <typename Range>
@@ -456,6 +452,7 @@ namespace monad {
                 return f(x, y);
             };
         }
+
         return retval;
     }
 
