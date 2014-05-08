@@ -34,17 +34,17 @@ namespace monad {
         state_type state () const
         { return state_; }
 
+        template <typename Fn>
+        this_type bind (Fn f) const;
+
+        template <typename State_>
+        join_result_t<this_type, State_> join () const;
+
         value_type & mutable_value ()
         { return value_; }
 
         state_type & mutable_state ()
         { return state_; }
-
-        template <typename Fn>
-        this_type bind (Fn f) const;
-
-        template <typename State_>
-        join_result_t<this_type, State_> join ();
 
         value_type value_;
         state_type state_;
