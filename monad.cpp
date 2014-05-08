@@ -4,8 +4,8 @@
 #include <functional>
 
 
-struct empty_t {};
-const empty_t empty = {};
+struct nothing_t {};
+const nothing_t nothing = {};
 
 namespace monad {
 
@@ -31,7 +31,7 @@ namespace monad {
             state_ {true}
         {}
 
-        monad (empty_t) :
+        monad (nothing_t) :
             value_ {},
             state_ {false}
         {}
@@ -62,7 +62,7 @@ namespace monad {
 
         template <typename State_>
         join_result_t<this_type, State_> join()
-        { return !state_ ? value_type{empty} : value_; }
+        { return !state_ ? value_type{nothing} : value_; }
 
         value_type value_;
         state_type state_;
@@ -130,18 +130,18 @@ std::ostream& operator<< (std::ostream& os,
 
 int main()
 {
-    maybe<int> m_empty_i(empty);
+    maybe<int> m_nothing_i(nothing);
     maybe<int> m_0_i(0);
     maybe<int> m_3_i(3);
 
 
     // operator>>=
 
-    std::cout << m_empty_i << " + " << m_3_i << " = "
-              << (m_empty_i + m_3_i) << "\n";
+    std::cout << m_nothing_i << " + " << m_3_i << " = "
+              << (m_nothing_i + m_3_i) << "\n";
 
-    std::cout << m_3_i << " + " << m_empty_i << " = "
-              << (m_3_i + m_empty_i) << "\n";
+    std::cout << m_3_i << " + " << m_nothing_i << " = "
+              << (m_3_i + m_nothing_i) << "\n";
 
     std::cout << m_0_i << " + " << m_3_i << " = "
               << (m_0_i + m_3_i) << "\n";
@@ -149,16 +149,16 @@ int main()
     std::cout << m_0_i << " + " << m_3_i << " + " << m_0_i << " = "
               << (m_0_i + m_3_i + m_0_i) << "\n";
 
-    std::cout << m_0_i << " + " << m_3_i << " + " << m_empty_i << " = "
-              << (m_0_i + m_3_i + m_empty_i) << "\n";
+    std::cout << m_0_i << " + " << m_3_i << " + " << m_nothing_i << " = "
+              << (m_0_i + m_3_i + m_nothing_i) << "\n";
 
 
     // operator>>
-    std::cout << m_empty_i << " >> " << m_3_i << " = "
-              << (m_empty_i >> m_3_i) << "\n";
+    std::cout << m_nothing_i << " >> " << m_3_i << " = "
+              << (m_nothing_i >> m_3_i) << "\n";
 
-    std::cout << m_3_i << " >> " << m_empty_i << " = "
-              << (m_3_i >> m_empty_i) << "\n";
+    std::cout << m_3_i << " >> " << m_nothing_i << " = "
+              << (m_3_i >> m_nothing_i) << "\n";
 
     std::cout << m_0_i << " >> " << m_3_i << " = "
               << (m_0_i >> m_3_i) << "\n";
@@ -166,8 +166,8 @@ int main()
 
     // unary join
 
-    maybe<maybe<int>> inner_bad = {{empty}};
-    maybe<maybe<int>> outer_bad = {empty};
+    maybe<maybe<int>> inner_bad = {{nothing}};
+    maybe<maybe<int>> outer_bad = {nothing};
     maybe<maybe<int>> both_good = {{1}};
 
     std::cout << "join(inner_bad=" << inner_bad << ") = "
@@ -180,8 +180,8 @@ int main()
 
     // unary fmap
 
-    std::cout << "fmap(add_2<int>, " << m_empty_i << ") = "
-              << fmap(add_2<int>, m_empty_i) << "\n";
+    std::cout << "fmap(add_2<int>, " << m_nothing_i << ") = "
+              << fmap(add_2<int>, m_nothing_i) << "\n";
 
     std::cout << "fmap(add_2<int>, " << m_3_i << ") = "
               << fmap(add_2<int>, m_3_i) << "\n";
@@ -189,8 +189,8 @@ int main()
     std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_3_i << ")) = "
               << fmap(add_2<int>, fmap(add_2<int>, m_3_i)) << "\n";
 
-    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_empty_i << ")) = "
-              << fmap(add_2<int>, fmap(add_2<int>, m_empty_i)) << "\n";
+    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_nothing_i << ")) = "
+              << fmap(add_2<int>, fmap(add_2<int>, m_nothing_i)) << "\n";
 
 
     // 2-ary fmap
@@ -198,11 +198,11 @@ int main()
     std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ")) = "
               << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_3_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_empty_i << ", " << m_3_i << ")) = "
-              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_empty_i, m_3_i) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_nothing_i << ", " << m_3_i << ")) = "
+              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_nothing_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_empty_i << ")) = "
-              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_3_i, m_empty_i) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_nothing_i << ")) = "
+              << monad::fmap_n<maybe<int>>(std::plus<int>{}, m_3_i, m_nothing_i) << "\n";
 
 
     // 3-ary fmap
@@ -210,18 +210,18 @@ int main()
     std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_3_i << ")) = "
               << monad::fmap_n<maybe<int>>(add3<int>, m_3_i, m_3_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_empty_i << ", " << m_3_i << ")) = "
-              << monad::fmap_n<maybe<int>>(add3<int>, m_3_i, m_empty_i, m_3_i) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_nothing_i << ", " << m_3_i << ")) = "
+              << monad::fmap_n<maybe<int>>(add3<int>, m_3_i, m_nothing_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_empty_i << ")) = "
-              << monad::fmap_n<maybe<int>>(add3<int>, m_3_i, m_3_i, m_empty_i) << "\n";
+    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_nothing_i << ")) = "
+              << monad::fmap_n<maybe<int>>(add3<int>, m_3_i, m_3_i, m_nothing_i) << "\n";
 
 
     // sequence
 
-    std::vector<maybe<int>> bad_maybes_1 = {empty, 0, 3};
-    std::vector<maybe<int>> bad_maybes_2 = {0, empty, 3};
-    std::vector<maybe<int>> bad_maybes_3 = {0, 3, empty};
+    std::vector<maybe<int>> bad_maybes_1 = {nothing, 0, 3};
+    std::vector<maybe<int>> bad_maybes_2 = {0, nothing, 3};
+    std::vector<maybe<int>> bad_maybes_3 = {0, 3, nothing};
     std::vector<maybe<int>> good_maybes = {-1, 0, 3};
 
     std::cout << "sequence(bad_maybes_1=[ " << bad_maybes_1[0] << " " << bad_maybes_1[1] << " " << bad_maybes_1[2] << " ]) = "
@@ -252,11 +252,11 @@ int main()
     // map
 
     auto map_nonzero = [](int x) {
-        maybe<int> retval = x ? maybe<int>{x} : maybe<int>{empty};
+        maybe<int> retval = x ? maybe<int>{x} : maybe<int>{nothing};
         return retval;
     };
     auto map_odd = [](int x) {
-        maybe<int> retval = x % 2 ? maybe<int>{x} : maybe<int>{empty};
+        maybe<int> retval = x % 2 ? maybe<int>{x} : maybe<int>{nothing};
         return retval;
     };
 
@@ -280,14 +280,14 @@ int main()
         maybe<std::pair<int, double>> retval =
             x ?
             maybe<std::pair<int, double>>{{x, x + 0.5}} :
-            maybe<std::pair<int, double>>{empty};
+            maybe<std::pair<int, double>>{nothing};
         return retval;
     };
     auto map_unzip_odd = [](int x) {
         maybe<std::pair<int, double>> retval =
             x % 2 ?
             maybe<std::pair<int, double>>{{x, x + 0.5}} :
-            maybe<std::pair<int, double>>{empty};
+            maybe<std::pair<int, double>>{nothing};
         return retval;
     };
 
@@ -311,7 +311,7 @@ int main()
         return maybe<double>{lhs * rhs};
     };
     auto fold_quotient = [](double lhs, int rhs) {
-        maybe<double> retval = rhs ? maybe<double>{lhs / rhs} : maybe<double>{empty};
+        maybe<double> retval = rhs ? maybe<double>{lhs / rhs} : maybe<double>{nothing};
         return retval;
     };
 
@@ -335,7 +335,7 @@ int main()
         return maybe<bool>{x % 2 == 1};
     };
     auto filter_flag_zero = [](int x) {
-        maybe<bool> retval = x ? maybe<bool>{true} : maybe<bool>{empty};
+        maybe<bool> retval = x ? maybe<bool>{true} : maybe<bool>{nothing};
         return retval;
     };
 
@@ -361,7 +361,7 @@ int main()
 
     auto zip_sum_nonzero = [](int lhs, int rhs) {
         int sum = lhs + rhs;
-        maybe<int> retval = sum ? maybe<int>{sum} : maybe<int>{empty};
+        maybe<int> retval = sum ? maybe<int>{sum} : maybe<int>{nothing};
         return retval;
     };
 
