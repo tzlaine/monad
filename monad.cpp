@@ -1,5 +1,6 @@
 #include "maybe/maybe.hpp"
 #include "maybe/io.hpp"
+#include "declare_operators.hpp"
 
 #include <iostream>
 
