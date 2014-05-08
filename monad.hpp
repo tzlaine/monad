@@ -162,24 +162,25 @@ namespace monad {
         {
             monad<OutSeq, State> retval;
 
+            if (first == last)
+                return retval;
+
             detail::reserve(retval.mutable_value(), first, last);
 
-            bool done_with_binds = false;
+            Monad prev = f(first);
+            ++first;
+            retval.mutable_value().push_back(prev.value());
+
             while (first != last) {
-                auto m = f(first);
+                Monad m = f(first);
                 ++first;
                 retval.mutable_value().push_back(m.value());
-                if (!done_with_binds) {
-                    bool fail = true;
-                    m >>= [m, &fail](typename Monad::value_type) {
-                        fail = false;
-                        return m;
-                    };
-                    retval.mutable_state() = m.state();
-                    if (fail)
-                        done_with_binds = true;
-                }
+                prev = prev >>= [m](typename Monad::value_type) {
+                    return m;
+                };
             }
+
+            retval.mutable_state() = prev.state();
 
             return retval;
         }
@@ -384,6 +385,8 @@ namespace monad {
                 return *this;
             }
 
+            friend bool operator== (zip_iterator lhs, zip_iterator rhs)
+            { return lhs.first == rhs.first; }
             friend bool operator!= (zip_iterator lhs, zip_iterator rhs)
             { return lhs.first != rhs.first; }
         };
