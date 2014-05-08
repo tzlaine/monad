@@ -63,19 +63,23 @@ namespace monad {
     bool operator!= (monad<T, State> lhs, monad<T, State> rhs)
     { return !(lhs == rhs); }
 
-    // operator>>=().
+    // operator>>=().  Fn must have a signature of the form
+    // monad<...> (T).
     // (>>=) :: m a -> (a -> m b) -> m b
     template <typename T, typename State, typename Fn>
     monad<T, State> operator>>= (monad<T, State> m, Fn f)
     { return m.bind(f); }
 
-    // operator<<=().
+    // operator<<=().  Fn must have a signature of the form
+    // monad<...> (T).
     // (=<<) :: Monad m => (a -> m b) -> m a -> m b
     template <typename T, typename State, typename Fn>
     monad<T, State> operator<<= (Fn f, monad<T, State> m)
     { return m.bind(f); }
 
-    // operator>>().
+    // operator>>().  Though the Haskell version operates on two monadic
+    // values, limitations of the C++ type system require the operands to be
+    // the same.
     // (>>) :: m a -> m b -> m b
     template <typename T, typename State>
     monad<T, State> operator>> (monad<T, State> lhs, monad<T, State> rhs)
@@ -229,7 +233,7 @@ namespace monad {
 
     }
 
-    // mapM().  Predicate Fn must have a signature of the form
+    // mapM().  Fn must have a signature of the form
     // monad<...> (typename Iter::value_type).
     // mapM :: Monad m => (a -> m b) -> [a] -> m [b]
     template <
@@ -256,7 +260,7 @@ namespace monad {
         decltype(map(f, std::begin(r), std::end(r)))
     { return map(f, std::begin(r), std::end(r)); }
 
-    // mapAndUnzipM().  Predicate Fn must have a signature of the form
+    // mapAndUnzipM().  Fn must have a signature of the form
     // monad<std::pair<...>, ...> (typename Iter::value_type).
     // mapAndUnzipM :: (Monad m) => (a -> m (b,c)) -> [a] -> m ([b], [c])
     template <
@@ -412,7 +416,7 @@ namespace std {
 
 namespace monad {
 
-    // zipWithM().  Predicate Fn must have a signature of the form
+    // zipWithM().  Fn must have a signature of the form
     // monad<...> (typename Iter1::value_type, typename Iter2::value_type).
     // zipWithM :: (Monad m) => (a -> b -> m c) -> [a] -> [b] -> m [c]
     template <
@@ -443,8 +447,8 @@ namespace monad {
         decltype(zip(f, std::begin(r1), std::end(r1), std::begin(r2)))
     { return zip(f, std::begin(r1), std::end(r1), std::begin(r2)); }
 
-    // foldM().  Predicate Fn must have a signature of the form
-    // monad<...> (T, typename Iter::value_type::value_type).
+    // foldM().  Fn must have a signature of the form
+    // monad<T, ...> (T, typename Iter::value_type::value_type).
     // foldM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m a
     template <typename Fn, typename T, typename Iter>
     auto fold (Fn f, T initial_value, Iter first, Iter last) ->
