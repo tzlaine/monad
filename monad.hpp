@@ -29,6 +29,12 @@ namespace monad {
         state_type state () const
         { return state_; }
 
+        value_type & mutable_value ()
+        { return value_; }
+
+        state_type & mutable_state ()
+        { return state_; }
+
         template <typename Fn>
         this_type bind (Fn f) const;
 
@@ -128,28 +134,25 @@ namespace monad {
     >
     monad<OutSeq, State> sequence (Iter first, Iter last)
     {
-        if (first == last)
-            return monad<OutSeq, State>{};
+        monad<OutSeq, State> retval;
 
-        OutSeq out_seq;
-        using value_type = typename Iter::value_type::value_type;
-        auto prev_monad = *first++;
-        prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
-            out_seq.push_back(x);
-            return prev_monad;
-        };
+        bool done_with_binds = false;
         while (first != last) {
-            auto current_monad = *first++;
-            prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
-                return current_monad >>=
-                [current_monad, &out_seq](value_type x) {
-                    out_seq.push_back(x);
-                    return current_monad;
+            auto m = *first++;
+            retval.mutable_value().push_back(m.value());
+            if (!done_with_binds) {
+                bool fail = true;
+                m >>= [m, &fail](typename Iter::value_type::value_type) {
+                    fail = false;
+                    return m;
                 };
-            };
+                retval.mutable_state() = m.state();
+                if (fail)
+                    done_with_binds = true;
+            }
         }
 
-        return monad<OutSeq, State>{out_seq, prev_monad.state()};
+        return retval;
     }
 
     template <typename Range>

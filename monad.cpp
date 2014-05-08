@@ -47,6 +47,12 @@ namespace monad {
         state_type state () const
         { return state_; }
 
+        value_type & mutable_value ()
+        { return value_; }
+
+        state_type & mutable_state ()
+        { return state_; }
+
         template <typename Fn>
         this_type bind (Fn f) const
         {
@@ -177,13 +183,23 @@ int main()
 
     // sequence
 
-    std::vector<maybe<int>> bad_maybes = {empty, 0, 3};
+    std::vector<maybe<int>> bad_maybes_1 = {empty, 0, 3};
+    std::vector<maybe<int>> bad_maybes_2 = {0, empty, 3};
+    std::vector<maybe<int>> bad_maybes_3 = {0, 3, empty};
     std::vector<maybe<int>> good_maybes = {-1, 0, 3};
 
-    std::cout << "sequence(bad_maybes=[ " << bad_maybes[0] << " " << bad_maybes[1] << " " << bad_maybes[2] << " ]) = "
-              << monad::sequence(bad_maybes) << "\n";
-    std::cout << "sequence(bad_maybes=[ " << bad_maybes[0] << " " << bad_maybes[1] << " " << bad_maybes[2] << " ]) = "
-              << monad::sequence(bad_maybes.begin(), bad_maybes.end()) << "\n";
+    std::cout << "sequence(bad_maybes_1=[ " << bad_maybes_1[0] << " " << bad_maybes_1[1] << " " << bad_maybes_1[2] << " ]) = "
+              << monad::sequence(bad_maybes_1.begin(), bad_maybes_1.end()) << "\n";
+    std::cout << "sequence(bad_maybes_1=[ " << bad_maybes_1[0] << " " << bad_maybes_1[1] << " " << bad_maybes_1[2] << " ]) = "
+              << monad::sequence(bad_maybes_1) << "\n";
+    std::cout << "sequence(bad_maybes_2=[ " << bad_maybes_2[0] << " " << bad_maybes_2[1] << " " << bad_maybes_2[2] << " ]) = "
+              << monad::sequence(bad_maybes_2.begin(), bad_maybes_2.end()) << "\n";
+    std::cout << "sequence(bad_maybes_2=[ " << bad_maybes_2[0] << " " << bad_maybes_2[1] << " " << bad_maybes_2[2] << " ]) = "
+              << monad::sequence(bad_maybes_2) << "\n";
+    std::cout << "sequence(bad_maybes_3=[ " << bad_maybes_3[0] << " " << bad_maybes_3[1] << " " << bad_maybes_3[2] << " ]) = "
+              << monad::sequence(bad_maybes_3.begin(), bad_maybes_3.end()) << "\n";
+    std::cout << "sequence(bad_maybes_3=[ " << bad_maybes_3[0] << " " << bad_maybes_3[1] << " " << bad_maybes_3[2] << " ]) = "
+              << monad::sequence(bad_maybes_3) << "\n";
     std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
               << monad::sequence(good_maybes.begin(), good_maybes.end()) << "\n";
     std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
