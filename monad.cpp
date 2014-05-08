@@ -83,9 +83,9 @@ template <typename T>
 std::ostream& operator<< (std::ostream& os, maybe<T> m)
 {
     if (!m.state_)
-        os << "<empty>";
+        os << "Nothing";
     else
-        os << m.value_;
+        os << "Just " << m.value_;
     return os;
 }
 
@@ -93,9 +93,9 @@ template <typename T>
 std::ostream& operator<< (std::ostream& os, maybe<std::vector<T>> m)
 {
     if (!m.state_) {
-        os << "<empty>";
+        os << "Nothing";
     } else {
-        os << "[ ";
+        os << "Just [ ";
         for (auto x : m.value()) {
             os << x << ' ';
         }
@@ -109,9 +109,9 @@ std::ostream& operator<< (std::ostream& os,
                           maybe<std::pair<std::vector<T>, std::vector<U>>> m)
 {
     if (!m.state_) {
-        os << "<empty>";
+        os << "Nothing";
     } else {
-        os << "[ ";
+        os << "Just ([ ";
         for (auto x : m.value().first) {
             os << x << ' ';
         }
@@ -119,7 +119,7 @@ std::ostream& operator<< (std::ostream& os,
         for (auto x : m.value().second) {
             os << x << ' ';
         }
-        os << ']';
+        os << "])";
     }
     return os;
 }
