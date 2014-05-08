@@ -1,13 +1,12 @@
 #ifndef MONAD_HPP_INCLUDED_
 #define MONAD_HPP_INCLUDED_
 
+#include <monad_fwd.hpp>
+
 #include <vector>
 
 
 namespace monad {
-
-    template <typename T, typename State>
-    struct monad;
 
     namespace detail {
 
