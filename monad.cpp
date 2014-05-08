@@ -1,7 +1,6 @@
 #include "monad.hpp"
 
 #include <iostream>
-#include <functional>
 
 
 struct nothing_t {};
