@@ -3,6 +3,8 @@
 
 #include <vector>
 
+// TODO: decltype(...state()) -> decltype(...)::state_type
+
 
 namespace monad {
 
@@ -151,6 +153,39 @@ namespace monad {
             );
         }
 
+        template <
+            typename Iter,
+            typename Monad,
+            typename OutSeq,
+            typename State,
+            typename Fn
+        >
+        monad<OutSeq, State> sequence_impl (Fn f, Iter first, Iter last)
+        {
+            monad<OutSeq, State> retval;
+
+            detail::reserve(retval.mutable_value(), first, last);
+
+            bool done_with_binds = false;
+            while (first != last) {
+                auto m = f(first);
+                ++first;
+                retval.mutable_value().push_back(m.value());
+                if (!done_with_binds) {
+                    bool fail = true;
+                    m >>= [m, &fail](typename Monad::value_type) {
+                        fail = false;
+                        return m;
+                    };
+                    retval.mutable_state() = m.state();
+                    if (fail)
+                        done_with_binds = true;
+                }
+            }
+
+            return retval;
+        }
+
     }
 
     // sequence().
@@ -161,27 +196,16 @@ namespace monad {
     >
     monad<OutSeq, State> sequence (Iter first, Iter last)
     {
-        monad<OutSeq, State> retval;
-
-        detail::reserve(retval.mutable_value(), first, last);
-
-        bool done_with_binds = false;
-        while (first != last) {
-            auto m = *first++;
-            retval.mutable_value().push_back(m.value());
-            if (!done_with_binds) {
-                bool fail = true;
-                m >>= [m, &fail](typename Iter::value_type::value_type) {
-                    fail = false;
-                    return m;
-                };
-                retval.mutable_state() = m.state();
-                if (fail)
-                    done_with_binds = true;
-            }
-        }
-
-        return retval;
+        return detail::sequence_impl<
+            Iter,
+            typename Iter::value_type,
+            OutSeq,
+            State
+        >(
+            [](Iter it) {return *it;},
+            first,
+            last
+        );
     }
 
     template <typename Range>
@@ -217,30 +241,16 @@ namespace monad {
     auto map (Fn f, Iter first, Iter last) ->
         monad<OutSeq, decltype(f(*first).state())>
     {
-        using value_type = typename OutSeq::value_type;
-        using state_type = decltype(f(*first).state());
-
-        if (first == last)
-            return monad<OutSeq, state_type>{};
-
-        OutSeq out_seq;
-        auto prev_monad = f(*first++);
-        prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
-            out_seq.push_back(x);
-            return prev_monad;
-        };
-        while (first != last) {
-            auto current_monad = f(*first++);
-            prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
-                return current_monad >>=
-                [current_monad, &out_seq](value_type x) {
-                    out_seq.push_back(x);
-                    return current_monad;
-                };
-            };
-        }
-
-        return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
+        return detail::sequence_impl<
+            Iter,
+            decltype(f(*first)),
+            OutSeq,
+            decltype(f(*first).state())
+        >(
+            [f](Iter it) {return f(*it);},
+            first,
+            last
+        );
     }
 
     template <typename Fn, typename Range>
