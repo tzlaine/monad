@@ -64,16 +64,19 @@ namespace monad {
     { return !(lhs == rhs); }
 
     // operator>>=().
+    // (>>=) :: m a -> (a -> m b) -> m b
     template <typename T, typename State, typename Fn>
     monad<T, State> operator>>= (monad<T, State> m, Fn f)
     { return m.bind(f); }
 
     // operator<<=().
+    // (=<<) :: Monad m => (a -> m b) -> m a -> m b
     template <typename T, typename State, typename Fn>
     monad<T, State> operator<<= (Fn f, monad<T, State> m)
     { return m.bind(f); }
 
     // operator>>().
+    // (>>) :: m a -> m b -> m b
     template <typename T, typename State>
     monad<T, State> operator>> (monad<T, State> lhs, monad<T, State> rhs)
     {
@@ -83,6 +86,7 @@ namespace monad {
     }
 
     // Unary fmap().
+    // fmap :: Functor f => (a -> b) -> f a -> f b
     template <typename T, typename State, typename Fn>
     monad<T, State> fmap (Fn f, monad<T, State> m)
     {
@@ -92,6 +96,7 @@ namespace monad {
     }
 
     // Unary liftM().
+    // liftM :: (Monad m) => (a -> b) -> (m a -> m b)
     template <typename T, typename State, typename Fn>
     monad<T, State> lift (Fn f, monad<T, State> m)
     { return fmap(f, m); }
@@ -110,6 +115,7 @@ namespace monad {
     }
 
     // N-ary fmap().
+    // fmap :: Functor f => (a -> b) -> f a -> f b
     template <typename ReturnMonad, typename Fn, typename ...Monads>
     ReturnMonad fmap_n (Fn f, Monads... monads)
     {
@@ -122,6 +128,7 @@ namespace monad {
     }
 
     // N-ary liftM().
+    // liftM :: (Monad m) => (a -> b) -> (m a -> m b)
     template <typename ReturnMonad, typename Fn, typename ...Monads>
     ReturnMonad lift_n (Fn f, Monads... monads)
     { return fmap_n<ReturnMonad>(f, monads...); }
@@ -188,6 +195,7 @@ namespace monad {
     }
 
     // sequence().
+    // sequence :: Monad m => [m a] -> m [a]
     template <
         typename Iter,
         typename OutSeq = std::vector<typename Iter::value_type::value_type>,
@@ -235,6 +243,7 @@ namespace monad {
 
     // mapM().  Predicate Fn must have a signature of the form
     // monad<...> (typename Iter::value_type).
+    // mapM :: Monad m => (a -> m b) -> [a] -> m [b]
     template <
         typename Fn,
         typename Iter,
@@ -261,6 +270,7 @@ namespace monad {
 
     // mapAndUnzipM().  Predicate Fn must have a signature of the form
     // monad<std::pair<...>, ...> (typename Iter::value_type).
+    // mapAndUnzipM :: (Monad m) => (a -> m (b,c)) -> [a] -> m ([b], [c])
     template <
         typename Fn,
         typename Iter,
@@ -314,6 +324,7 @@ namespace monad {
 
     // filterM().  Predicate Fn must have a signature of the form
     // monad<bool, ...> (typename Iter::value_type).
+    // filterM :: Monad m => (a -> m Bool) -> [a] -> m [a]
     template <
         typename Fn,
         typename Iter,
@@ -415,6 +426,7 @@ namespace monad {
 
     // zipWithM().  Predicate Fn must have a signature of the form
     // monad<...> (typename Iter1::value_type, typename Iter2::value_type).
+    // zipWithM :: (Monad m) => (a -> b -> m c) -> [a] -> [b] -> m [c]
     template <
         typename Fn,
         typename Iter1,
@@ -445,6 +457,7 @@ namespace monad {
 
     // foldM().  Predicate Fn must have a signature of the form
     // monad<...> (T, typename Iter::value_type::value_type).
+    // foldM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m a
     template <typename Fn, typename T, typename Iter>
     auto fold (Fn f, T initial_value, Iter first, Iter last) ->
         decltype(f(initial_value, *first))
