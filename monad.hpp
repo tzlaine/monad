@@ -95,12 +95,6 @@ namespace monad {
         };
     }
 
-    // Unary liftM().
-    // liftM :: (Monad m) => (a -> b) -> (m a -> m b)
-    template <typename T, typename State, typename Fn>
-    monad<T, State> lift (Fn f, monad<T, State> m)
-    { return fmap(f, m); }
-
     namespace detail {
 
         template <std::size_t N,
@@ -126,12 +120,6 @@ namespace monad {
             Monads...
         >::call(f, monads...);
     }
-
-    // N-ary liftM().
-    // liftM :: (Monad m) => (a -> b) -> (m a -> m b)
-    template <typename ReturnMonad, typename Fn, typename ...Monads>
-    ReturnMonad lift_n (Fn f, Monads... monads)
-    { return fmap_n<ReturnMonad>(f, monads...); }
 
     namespace detail {
 
