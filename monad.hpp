@@ -260,7 +260,7 @@ namespace monad {
     { return map(f, std::begin(r), std::end(r)); }
 
     // mapAndUnzipM().  Predicate Fn must have a signature of the form
-    // monad<std::pair<...>, ...> (typename Iter::value_type). // TODO: Test. // TODO: Range version.
+    // monad<std::pair<...>, ...> (typename Iter::value_type).
     template <
         typename Fn,
         typename Iter,
@@ -287,13 +287,13 @@ namespace monad {
 
         detail::reserve(retval.mutable_value(), first, last);
 
-        monad_type prev = f(first);
+        monad_type prev = f(*first);
         ++first;
         retval.mutable_value().first.push_back(prev.value().first);
         retval.mutable_value().second.push_back(prev.value().second);
 
         while (first != last) {
-            monad_type m = f(first);
+            monad_type m = f(*first);
             ++first;
             retval.mutable_value().first.push_back(m.value().first);
             retval.mutable_value().second.push_back(m.value().second);
@@ -307,8 +307,13 @@ namespace monad {
         return retval;
     }
 
+    template <typename Fn, typename Range>
+    auto map_unzip (Fn f, Range const & r) ->
+        decltype(map_unzip(f, std::begin(r), std::end(r)))
+    { return map_unzip(f, std::begin(r), std::end(r)); }
+
     // filterM().  Predicate Fn must have a signature of the form
-    // monad<bool, ...> (typename Iter::value_type). // TODO: Test.
+    // monad<bool, ...> (typename Iter::value_type).
     template <
         typename Fn,
         typename Iter,

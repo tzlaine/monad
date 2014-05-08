@@ -85,7 +85,7 @@ template <typename T>
 std::ostream& operator<< (std::ostream& os, maybe<T> m)
 {
     if (!m.state_)
-        os << "[empty]";
+        os << "<empty>";
     else
         os << m.value_;
     return os;
@@ -95,10 +95,30 @@ template <typename T>
 std::ostream& operator<< (std::ostream& os, maybe<std::vector<T>> m)
 {
     if (!m.state_) {
-        os << "[empty]";
+        os << "<empty>";
     } else {
         os << "[ ";
         for (auto x : m.value()) {
+            os << x << ' ';
+        }
+        os << ']';
+    }
+    return os;
+}
+
+template <typename T, typename U>
+std::ostream& operator<< (std::ostream& os,
+                          maybe<std::pair<std::vector<T>, std::vector<U>>> m)
+{
+    if (!m.state_) {
+        os << "<empty>";
+    } else {
+        os << "[ ";
+        for (auto x : m.value().first) {
+            os << x << ' ';
+        }
+        os << "],[ ";
+        for (auto x : m.value().second) {
             os << x << ' ';
         }
         os << ']';
@@ -236,6 +256,38 @@ int main()
               << monad::map(map_odd, set_1.begin(), set_1.end()) << "\n";
     std::cout << "map(map_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
               << monad::map(map_odd, set_1) << "\n";
+
+
+    // map
+
+    auto map_unzip_nonzero = [](int x) {
+        maybe<std::pair<int, double>> retval =
+            x ?
+            maybe<std::pair<int, double>>{{x, x + 0.5}} :
+            maybe<std::pair<int, double>>{empty};
+        return retval;
+    };
+    auto map_unzip_odd = [](int x) {
+        maybe<std::pair<int, double>> retval =
+            x % 2 ?
+            maybe<std::pair<int, double>>{{x, x + 0.5}} :
+            maybe<std::pair<int, double>>{empty};
+        return retval;
+    };
+
+    std::cout << "map_unzip(map_unzip_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map_unzip(map_unzip_nonzero, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "map_unzip(map_unzip_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map_unzip(map_unzip_nonzero, set_1) << "\n";
+    std::cout << "map_unzip(map_unzip_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::map_unzip(map_unzip_nonzero, set_2.begin(), set_2.end()) << "\n";
+    std::cout << "map_unzip(map_unzip_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
+              << monad::map_unzip(map_unzip_nonzero, set_2) << "\n";
+    std::cout << "map_unzip(map_unzip_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map_unzip(map_unzip_odd, set_1.begin(), set_1.end()) << "\n";
+    std::cout << "map_unzip(map_unzip_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
+              << monad::map_unzip(map_unzip_odd, set_1) << "\n";
+
 
     // fold
 
