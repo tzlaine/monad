@@ -6,6 +6,9 @@
 
 namespace monad {
 
+    template <typename T>
+    struct is_monad;
+
     template <typename T, typename State>
     struct monad
     {
@@ -37,6 +40,8 @@ namespace monad {
 
         template <typename Fn>
         this_type bind (Fn f) const;
+
+        typename std::enable_if<is_monad<value_type>::value>::type join ();
 
         value_type value_;
         state_type state_;
@@ -88,6 +93,12 @@ namespace monad {
             return rhs;
         });
     }
+
+    // join().
+    // join :: (Monad m) => m (m a) -> m a
+    template <typename T, typename State>
+    auto join (monad<monad<T, State>, State> m) -> decltype(m.join())
+    { return m.join(); }
 
     // Unary fmap().
     // fmap :: Functor f => (a -> b) -> f a -> f b
