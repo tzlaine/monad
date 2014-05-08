@@ -44,10 +44,10 @@ namespace monad {
                   typename ReturnMonad,
                   typename Fn,
                   typename ...Monads>
-        struct fmap_n_impl;
+        struct lift_n_impl;
 
-#define MONAD_FMAP_N_MAX_ARITY 10
-#include "detail/fmap_n_impl.hpp"
+#define MONAD_LIFT_N_MAX_ARITY 10
+#include "detail/lift_n_impl.hpp"
 
         template <typename Container, typename Iter, typename Tag>
         void reserve_impl (Container&, Iter, Iter, Tag)

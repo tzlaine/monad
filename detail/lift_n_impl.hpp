@@ -6,8 +6,8 @@
 #  include <boost/preprocessor/repetition/repeat.hpp>
 #  include <boost/preprocessor/iteration/iterate.hpp>
 
-#  define BOOST_PP_FILENAME_1 "detail/fmap_n_impl.hpp"
-#  define BOOST_PP_ITERATION_LIMITS (1, MONAD_FMAP_N_MAX_ARITY)
+#  define BOOST_PP_FILENAME_1 "detail/lift_n_impl.hpp"
+#  define BOOST_PP_ITERATION_LIMITS (1, MONAD_LIFT_N_MAX_ARITY)
 #  include BOOST_PP_ITERATE()
 
 #else
@@ -19,7 +19,7 @@
     template <typename ReturnMonad,
               typename Fn,
               BOOST_PP_ENUM_PARAMS(N, typename M)>
-    struct fmap_n_impl<N,
+    struct lift_n_impl<N,
                        ReturnMonad,
                        Fn,
                        BOOST_PP_ENUM_PARAMS(N, M)>

@@ -100,43 +100,43 @@ int main()
               << join(both_good) << "\n";
 
 
-    // unary fmap
+    // unary lift
 
-    std::cout << "fmap(add_2<int>, " << m_nothing_i << ") = "
-              << fmap(add_2<int>, m_nothing_i) << "\n";
+    std::cout << "lift(add_2<int>, " << m_nothing_i << ") = "
+              << lift(add_2<int>, m_nothing_i) << "\n";
 
-    std::cout << "fmap(add_2<int>, " << m_3_i << ") = "
-              << fmap(add_2<int>, m_3_i) << "\n";
+    std::cout << "lift(add_2<int>, " << m_3_i << ") = "
+              << lift(add_2<int>, m_3_i) << "\n";
 
-    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_3_i << ")) = "
-              << fmap(add_2<int>, fmap(add_2<int>, m_3_i)) << "\n";
+    std::cout << "lift(add_2<int>, lift(add_2<int>, " << m_3_i << ")) = "
+              << lift(add_2<int>, lift(add_2<int>, m_3_i)) << "\n";
 
-    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_nothing_i << ")) = "
-              << fmap(add_2<int>, fmap(add_2<int>, m_nothing_i)) << "\n";
-
-
-    // 2-ary fmap
-
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ")) = "
-              << monad::fmap_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_3_i) << "\n";
-
-    std::cout << "fmap_n(add<int>, " << m_nothing_i << ", " << m_3_i << ")) = "
-              << monad::fmap_n<monad::maybe<int>>(std::plus<int>{}, m_nothing_i, m_3_i) << "\n";
-
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_nothing_i << ")) = "
-              << monad::fmap_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_nothing_i) << "\n";
+    std::cout << "lift(add_2<int>, lift(add_2<int>, " << m_nothing_i << ")) = "
+              << lift(add_2<int>, lift(add_2<int>, m_nothing_i)) << "\n";
 
 
-    // 3-ary fmap
+    // 2-ary lift
 
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_3_i << ")) = "
-              << monad::fmap_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_3_i) << "\n";
+    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ")) = "
+              << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_nothing_i << ", " << m_3_i << ")) = "
-              << monad::fmap_n<monad::maybe<int>>(add3<int>, m_3_i, m_nothing_i, m_3_i) << "\n";
+    std::cout << "lift_n(add<int>, " << m_nothing_i << ", " << m_3_i << ")) = "
+              << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_nothing_i, m_3_i) << "\n";
 
-    std::cout << "fmap_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_nothing_i << ")) = "
-              << monad::fmap_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_nothing_i) << "\n";
+    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_nothing_i << ")) = "
+              << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_nothing_i) << "\n";
+
+
+    // 3-ary lift
+
+    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_3_i << ")) = "
+              << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_3_i) << "\n";
+
+    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_nothing_i << ", " << m_3_i << ")) = "
+              << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_nothing_i, m_3_i) << "\n";
+
+    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_nothing_i << ")) = "
+              << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_nothing_i) << "\n";
 
 
     // sequence
