@@ -3,17 +3,26 @@
 #include <iostream>
 
 
-struct nothing_t {};
-const nothing_t nothing = {};
-
 namespace monad {
 
+    namespace detail {
+
+        struct maybe_state
+        {
+            bool nonempty_;
+        };
+
+    }
+
+    struct nothing_t {};
+    const nothing_t nothing = {};
+
     template <typename T>
-    struct monad<T, bool>
+    struct monad<T, detail::maybe_state>
     {
-        using this_type = monad<T, bool>;
+        using this_type = monad<T, detail::maybe_state>;
         using value_type = T;
-        using state_type = bool;
+        using state_type = detail::maybe_state;
 
         monad () :
             value_ {},
@@ -47,7 +56,7 @@ namespace monad {
         template <typename Fn>
         this_type bind (Fn f) const
         {
-            if (!state_)
+            if (!state_.nonempty_)
                 return *this;
             else
                 return f(value_);
@@ -55,7 +64,7 @@ namespace monad {
 
         template <typename State_>
         join_result_t<this_type, State_> join() const
-        { return !state_ ? value_type{nothing} : value_; }
+        { return !state_.nonempty_ ? value_type{nothing} : value_; }
 
         value_type & mutable_value ()
         { return value_; }
@@ -67,17 +76,17 @@ namespace monad {
         state_type state_;
     };
 
-}
+    template <typename T>
+    using maybe = monad<T, detail::maybe_state>;
 
-template <typename T>
-using maybe = monad::monad<T, bool>;
+    template <typename T>
+    std::ostream& operator<< (std::ostream& os, maybe<T> m)
+    {
+        if (!m.state_.nonempty_)
+            os << "Nothing";
+        else
+            os << "Just " << m.value_;
+        return os;
+    }
 
-template <typename T>
-std::ostream& operator<< (std::ostream& os, maybe<T> m)
-{
-    if (!m.state_)
-        os << "Nothing";
-    else
-        os << "Just " << m.value_;
-    return os;
 }
