@@ -1,7 +1,7 @@
 #ifndef MONAD_HPP_INCLUDED_
 #define MONAD_HPP_INCLUDED_
 
-#include <detail.hpp>
+#include <detail/detail.hpp>
 
 #include <vector>
 
