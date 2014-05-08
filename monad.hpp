@@ -3,8 +3,6 @@
 
 #include <vector>
 
-// TODO: decltype(...state()) -> decltype(...)::state_type
-
 
 namespace monad {
 
@@ -227,6 +225,15 @@ namespace monad {
         using mapped_value_type_t =
             typename mapped_value_type<Fn, Iter>::type;
 
+        template <typename Monad>
+        struct state_type
+        {
+            using type = typename Monad::state_type;
+        };
+
+        template <typename Monad>
+        using state_type_t = typename state_type<Monad>::type;
+
     }
 
     // mapM().  Predicate Fn must have a signature of the form
@@ -239,14 +246,11 @@ namespace monad {
         >
     >
     auto map (Fn f, Iter first, Iter last) ->
-        monad<OutSeq, decltype(f(*first).state())>
+        monad<OutSeq, detail::state_type_t<decltype(f(*first))>>
     {
-        return detail::sequence_impl<
-            Iter,
-            decltype(f(*first)),
-            OutSeq,
-            decltype(f(*first).state())
-        >(
+        using monad_type = decltype(f(*first));
+        using state_type = detail::state_type_t<monad_type>;
+        return detail::sequence_impl<Iter, monad_type, OutSeq, state_type>(
             [f](Iter it) {return f(*it);},
             first,
             last
@@ -271,17 +275,21 @@ namespace monad {
         >
     >
     auto map_unzip (Fn f, Iter first, Iter last) ->
-        monad<std::pair<FirstOutSeq, SecondOutSeq>, decltype(f(*first).state())>
+        monad<
+            std::pair<FirstOutSeq, SecondOutSeq>,
+            detail::state_type_t<decltype(f(*first))>
+        >
     {
         using first_value_type = typename FirstOutSeq::value_type;
         using second_value_type = typename SecondOutSeq::value_type;
         using value_type = std::pair<first_value_type, second_value_type>;
-        using state_type = decltype(f(*first).state());
-        using monad_type =
+        using monad_type = decltype(f(*first));
+        using state_type = detail::state_type_t<monad_type>;
+        using result_type =
             monad<std::pair<FirstOutSeq, SecondOutSeq>, state_type>;
 
         if (first == last)
-            return monad_type{};
+            return result_type{};
 
         std::pair<FirstOutSeq, SecondOutSeq> out_seqs;
         auto prev_monad = f(*first++);
@@ -302,7 +310,7 @@ namespace monad {
             };
         }
 
-        return monad_type{out_seqs, prev_monad.state()};
+        return result_type{out_seqs, prev_monad.state()};
     }
 
     // filterM().  Predicate Fn must have a signature of the form
@@ -313,9 +321,10 @@ namespace monad {
         typename OutSeq = std::vector<typename Iter::value_type>
     >
     auto filter (Fn f, Iter first, Iter last) ->
-        monad<OutSeq, decltype(f(*first).state())>
+        monad<OutSeq, detail::state_type_t<decltype(f(*first))>>
     {
-        using state_type = decltype(f(*first).state());
+        using monad_type = decltype(f(*first));
+        using state_type = detail::state_type_t<monad_type>;
 
         if (first == last)
             return monad<OutSeq, state_type>{};
@@ -406,17 +415,14 @@ namespace monad {
         >
     >
     auto zip (Fn f, Iter1 first1, Iter1 last1, Iter2 first2) ->
-        monad<OutSeq, decltype(f(*first1, *first2).state())>
+        monad<OutSeq, detail::state_type_t<decltype(f(*first1, *first2))>>
     {
+        using monad_type = decltype(f(*first1, *first2));
+        using state_type = detail::state_type_t<monad_type>;
         using zip_iter = detail::zip_iterator<Iter1, Iter2>;
         zip_iter first{first1, first2};
         zip_iter last{last1, first2};
-        return detail::sequence_impl<
-            zip_iter,
-            decltype(f(*first1, *first2)),
-            OutSeq,
-            decltype(f(*first1, *first2).state())
-        >(
+        return detail::sequence_impl<zip_iter, monad_type, OutSeq, state_type>(
             [f](zip_iter it) {return f(*it.first, *it.second);},
             first,
             last
