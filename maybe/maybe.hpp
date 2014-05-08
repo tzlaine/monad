@@ -1,6 +1,7 @@
-#include <monad.hpp>
+#ifndef MAYBE_MAYBE_HPP_INCLUDED_
+#define MAYBE_MAYBE_HPP_INCLUDED_
 
-#include <iostream>
+#include <monad.hpp>
 
 
 namespace monad {
@@ -79,14 +80,6 @@ namespace monad {
     template <typename T>
     using maybe = monad<T, detail::maybe_state>;
 
-    template <typename T>
-    std::ostream& operator<< (std::ostream& os, maybe<T> m)
-    {
-        if (!m.state_.nonempty_)
-            os << "Nothing";
-        else
-            os << "Just " << m.value_;
-        return os;
-    }
-
 }
+
+#endif
