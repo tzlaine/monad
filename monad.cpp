@@ -209,6 +209,8 @@ int main()
     std::vector<int> set_1 = {1, 2, 3};
     std::vector<int> set_2 = {0, 2, 4};
     std::vector<int> set_3 = {-1, -1, -1};
+    std::vector<int> set_4 = {2, 0, 4};
+    std::vector<int> set_5 = {2, 4, 0};
 
 
     // map
@@ -277,6 +279,15 @@ int main()
               << monad::filter(filter_flag_zero, set_2.begin(), set_2.end()) << "\n";
     std::cout << "filter(filter_flag_zero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
               << monad::filter(filter_flag_zero, set_2) << "\n";
+    std::cout << "filter(filter_flag_zero, set_4=[ " << set_4[0] << " " << set_4[1] << " " << set_4[2] << " ]) = "
+              << monad::filter(filter_flag_zero, set_4.begin(), set_4.end()) << "\n";
+    std::cout << "filter(filter_flag_zero, set_4=[ " << set_4[0] << " " << set_4[1] << " " << set_4[2] << " ]) = "
+              << monad::filter(filter_flag_zero, set_4) << "\n";
+    std::cout << "filter(filter_flag_zero, set_5=[ " << set_5[0] << " " << set_5[1] << " " << set_5[2] << " ]) = "
+              << monad::filter(filter_flag_zero, set_5.begin(), set_5.end()) << "\n";
+    std::cout << "filter(filter_flag_zero, set_5=[ " << set_5[0] << " " << set_5[1] << " " << set_5[2] << " ]) = "
+              << monad::filter(filter_flag_zero, set_5) << "\n";
+
 
     // zip
 

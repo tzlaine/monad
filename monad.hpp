@@ -320,30 +320,38 @@ namespace monad {
         using monad_type = decltype(f(*first));
         using state_type = detail::state_type_t<monad_type>;
 
-        if (first == last)
-            return monad<OutSeq, state_type>{};
+        monad<OutSeq, state_type> retval;
 
-        OutSeq out_seq;
-        auto value = *first++;
-        auto prev_monad = f(value);
-        prev_monad = prev_monad >>= [prev_monad, value, &out_seq](bool b) {
-            if (b)
-                out_seq.push_back(value);
-            return prev_monad;
-        };
+        if (first == last)
+            return retval;
+
+        detail::reserve(retval.mutable_value(), first, last);
+
+        auto prev_value = *first;
+        monad_type prev = f(prev_value);
+        ++first;
+
         while (first != last) {
-            value = *first++;
-            auto current_monad = f(value);
-            prev_monad = prev_monad >>= [current_monad, value, &out_seq](bool) {
-                return current_monad >>= [current_monad, value, &out_seq](bool b) {
-                    if (b)
-                        out_seq.push_back(value);
-                    return current_monad;
-                };
+            auto value = *first;
+            monad_type m = f(value);
+            ++first;
+            prev = prev >>= [m, prev_value, &retval](bool b) {
+                if (b)
+                    retval.mutable_value().push_back(prev_value);
+                return m;
             };
+            prev_value = value;
         }
 
-        return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
+        prev >>= [prev, prev_value, &retval](bool b) {
+            if (b)
+                retval.mutable_value().push_back(prev_value);
+            return prev;
+        };
+
+        retval.mutable_state() = prev.state();
+
+        return retval;
     }
 
     template <typename Fn, typename Range>
