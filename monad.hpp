@@ -1,46 +1,12 @@
 #ifndef MONAD_HPP_INCLUDED_
 #define MONAD_HPP_INCLUDED_
 
-#include <monad_fwd.hpp>
+#include <detail.hpp>
 
 #include <vector>
 
 
 namespace monad {
-
-    namespace detail {
-
-        template <typename Monad>
-        struct state_type
-        {
-            using type = void;
-        };
-
-        template <typename T, typename State>
-        struct state_type<monad<T, State>>
-        {
-            using type = State;
-        };
-
-        template <typename Monad>
-        using state_type_t = typename state_type<Monad>::type;
-
-        template <typename Monad, typename State>
-        struct join_type :
-            std::enable_if<
-                std::is_same<
-                    detail::state_type_t<typename Monad::value_type>,
-                    State
-                >::value &&
-                std::is_same<
-                    typename Monad::state_type,
-                    State
-                >::value,
-                typename Monad::value_type
-            >
-        {};
-
-    }
 
     template <typename Monad, typename State>
     using join_result_t = typename detail::join_type<Monad, State>::type;
@@ -136,19 +102,6 @@ namespace monad {
         };
     }
 
-    namespace detail {
-
-        template <std::size_t N,
-                  typename ReturnMonad,
-                  typename Fn,
-                  typename ...Monads>
-        struct fmap_n_impl;
-
-#define MONAD_FMAP_N_MAX_ARITY 10
-#include "detail/fmap_n_impl.hpp"
-
-    }
-
     // N-ary fmap().
     // fmap :: Functor f => (a -> b) -> f a -> f b
     template <typename ReturnMonad, typename Fn, typename ...Monads>
@@ -160,67 +113,6 @@ namespace monad {
             Fn,
             Monads...
         >::call(f, monads...);
-    }
-
-    namespace detail {
-
-        template <typename Container, typename Iter, typename Tag>
-        void reserve_impl (Container&, Iter, Iter, Tag)
-        {}
-
-        template <typename Container, typename Iter>
-        auto reserve_impl (Container& c,
-                           Iter first,
-                           Iter last,
-                           std::random_access_iterator_tag) ->
-            decltype(c.reserve(last - first)) // For SFINAE.
-        { c.reserve(last - first); }
-
-        template <typename Container, typename Iter>
-        void reserve (Container& c, Iter first, Iter last)
-        {
-            reserve_impl(
-                c,
-                first,
-                last,
-                typename std::iterator_traits<Iter>::iterator_category{}
-            );
-        }
-
-        template <
-            typename Iter,
-            typename Monad,
-            typename OutSeq,
-            typename State,
-            typename Fn
-        >
-        monad<OutSeq, State> sequence_impl (Fn f, Iter first, Iter last)
-        {
-            monad<OutSeq, State> retval;
-
-            if (first == last)
-                return retval;
-
-            detail::reserve(retval.mutable_value(), first, last);
-
-            Monad prev = f(first);
-            ++first;
-            retval.mutable_value().push_back(prev.value());
-
-            while (first != last) {
-                Monad m = f(first);
-                ++first;
-                retval.mutable_value().push_back(m.value());
-                prev = prev >>= [m](typename Monad::value_type) {
-                    return m;
-                };
-            }
-
-            retval.mutable_state() = prev.state();
-
-            return retval;
-        }
-
     }
 
     // sequence().
@@ -244,22 +136,6 @@ namespace monad {
     auto sequence (Range const & r) ->
         decltype(sequence(std::begin(r), std::end(r)))
     { return sequence(std::begin(r), std::end(r)); }
-
-    namespace detail {
-
-        template <typename Fn, typename Iter>
-        struct mapped_value_type
-        {
-            using type = typename std::result_of<
-                Fn(typename Iter::value_type)
-            >::type::value_type;
-        };
-
-        template <typename Fn, typename Iter>
-        using mapped_value_type_t =
-            typename mapped_value_type<Fn, Iter>::type;
-
-    }
 
     // mapM().  Fn must have a signature of the form
     // monad<...> (typename Iter::value_type).
@@ -394,55 +270,6 @@ namespace monad {
     auto filter (Fn f, Range const & r) ->
         decltype(filter(f, std::begin(r), std::end(r)))
     { return filter(f, std::begin(r), std::end(r)); }
-
-    namespace detail {
-
-        template <typename Fn, typename Iter1, typename Iter2>
-        struct zip_value_type
-        {
-            using type = typename std::result_of<
-                Fn(typename Iter1::value_type, typename Iter2::value_type)
-            >::type;
-        };
-
-        template <typename Fn, typename Iter1, typename Iter2>
-        using zip_value_type_t =
-            typename zip_value_type<Fn, Iter1, Iter2>::type;
-
-        template <typename Iter1, typename Iter2>
-        struct zip_iterator
-        {
-            Iter1 first;
-            Iter2 second;
-
-            zip_iterator& operator++ ()
-            {
-                ++first;
-                ++second;
-                return *this;
-            }
-
-            friend bool operator== (zip_iterator lhs, zip_iterator rhs)
-            { return lhs.first == rhs.first; }
-            friend bool operator!= (zip_iterator lhs, zip_iterator rhs)
-            { return lhs.first != rhs.first; }
-        };
-
-    }
-
-}
-
-namespace std {
-
-    template <typename Iter1, typename Iter2>
-    struct iterator_traits<monad::detail::zip_iterator<Iter1, Iter2>>
-    {
-        using iterator_category = random_access_iterator_tag;
-    };
-
-}
-
-namespace monad {
 
     // zipWithM().  Fn must have a signature of the form
     // monad<...> (typename Iter1::value_type, typename Iter2::value_type).
