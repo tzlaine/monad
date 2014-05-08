@@ -22,8 +22,8 @@ namespace monad {
         {}
 
         monad (value_type value, state_type state) :
-            value_ (value),
-            state_ (state)
+            value_ {value},
+            state_ {state}
         {}
 
         monad (T t) :
