@@ -60,6 +60,10 @@ namespace monad {
                 return f(value_);
         }
 
+        template <typename State_>
+        join_result_t<this_type, State_> join()
+        { return !state_ ? value_type{empty} : value_; }
+
         value_type value_;
         state_type state_;
     };
@@ -158,6 +162,20 @@ int main()
 
     std::cout << m_0_i << " >> " << m_3_i << " = "
               << (m_0_i >> m_3_i) << "\n";
+
+
+    // unary join
+
+    maybe<maybe<int>> inner_bad = {{empty}};
+    maybe<maybe<int>> outer_bad = {empty};
+    maybe<maybe<int>> both_good = {{1}};
+
+    std::cout << "join(inner_bad=" << inner_bad << ") = "
+              << join(inner_bad) << "\n";
+    std::cout << "join(outer_bad=" << outer_bad << ") = "
+              << join(outer_bad) << "\n";
+    std::cout << "join(both_good=" << both_good << ") = "
+              << join(both_good) << "\n";
 
 
     // unary fmap

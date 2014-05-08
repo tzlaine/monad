@@ -6,8 +6,45 @@
 
 namespace monad {
 
-    template <typename T>
-    struct is_monad;
+    template <typename T, typename State>
+    struct monad;
+
+    namespace detail {
+
+        template <typename Monad>
+        struct state_type
+        {
+            using type = void;
+        };
+
+        template <typename T, typename State>
+        struct state_type<monad<T, State>>
+        {
+            using type = State;
+        };
+
+        template <typename Monad>
+        using state_type_t = typename state_type<Monad>::type;
+
+        template <typename Monad, typename State>
+        struct join_type :
+            std::enable_if<
+                std::is_same<
+                    detail::state_type_t<typename Monad::value_type>,
+                    State
+                >::value &&
+                std::is_same<
+                    typename Monad::state_type,
+                    State
+                >::value,
+                typename Monad::value_type
+            >
+        {};
+
+    }
+
+    template <typename Monad, typename State>
+    using join_result_t = typename detail::join_type<Monad, State>::type;
 
     template <typename T, typename State>
     struct monad
@@ -41,7 +78,8 @@ namespace monad {
         template <typename Fn>
         this_type bind (Fn f) const;
 
-        typename std::enable_if<is_monad<value_type>::value>::type join ();
+        template <typename State_>
+        join_result_t<this_type, State_> join ();
 
         value_type value_;
         state_type state_;
@@ -86,8 +124,8 @@ namespace monad {
     // join().
     // join :: (Monad m) => m (m a) -> m a
     template <typename T, typename State>
-    auto join (monad<monad<T, State>, State> m) -> decltype(m.join())
-    { return m.join(); }
+    auto join (monad<T, State> m) -> decltype(m.template join<State>())
+    { return m.template join<State>(); }
 
     // Unary fmap().
     // fmap :: Functor f => (a -> b) -> f a -> f b
@@ -221,15 +259,6 @@ namespace monad {
         template <typename Fn, typename Iter>
         using mapped_value_type_t =
             typename mapped_value_type<Fn, Iter>::type;
-
-        template <typename Monad>
-        struct state_type
-        {
-            using type = typename Monad::state_type;
-        };
-
-        template <typename Monad>
-        using state_type_t = typename state_type<Monad>::type;
 
     }
 
