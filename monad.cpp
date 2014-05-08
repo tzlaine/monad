@@ -18,7 +18,7 @@ T add_2 (T t)
 template <typename T>
 std::ostream& operator<< (std::ostream& os, monad::maybe<std::vector<T>> m)
 {
-    if (!m.state_.nonempty_) {
+    if (!m.state().nonempty_) {
         os << "Nothing";
     } else {
         os << "Just [ ";
@@ -34,7 +34,7 @@ template <typename T, typename U>
 std::ostream& operator<< (std::ostream& os,
                           monad::maybe<std::pair<std::vector<T>, std::vector<U>>> m)
 {
-    if (!m.state_.nonempty_) {
+    if (!m.state().nonempty_) {
         os << "Nothing";
     } else {
         os << "Just ([ ";

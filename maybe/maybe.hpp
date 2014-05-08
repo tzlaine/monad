@@ -19,8 +19,9 @@ namespace monad {
     const nothing_t nothing = {};
 
     template <typename T>
-    struct monad<T, detail::maybe_state>
+    class monad<T, detail::maybe_state>
     {
+    public:
         using this_type = monad<T, detail::maybe_state>;
         using value_type = T;
         using state_type = detail::maybe_state;
@@ -73,6 +74,7 @@ namespace monad {
         state_type & mutable_state ()
         { return state_; }
 
+    private:
         value_type value_;
         state_type state_;
     };

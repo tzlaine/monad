@@ -12,8 +12,9 @@ namespace monad {
     using join_result_t = typename detail::join_type<Monad, State>::type;
 
     template <typename T, typename State>
-    struct monad
+    class monad
     {
+    public:
         using this_type = monad<T, State>;
         using value_type = T;
         using state_type = State;
@@ -46,6 +47,7 @@ namespace monad {
         state_type & mutable_state ()
         { return state_; }
 
+    private:
         value_type value_;
         state_type state_;
     };
