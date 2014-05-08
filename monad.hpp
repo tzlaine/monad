@@ -277,37 +277,34 @@ namespace monad {
             detail::state_type_t<decltype(f(*first))>
         >
     {
-        using first_value_type = typename FirstOutSeq::value_type;
-        using second_value_type = typename SecondOutSeq::value_type;
-        using value_type = std::pair<first_value_type, second_value_type>;
         using monad_type = decltype(f(*first));
         using state_type = detail::state_type_t<monad_type>;
-        using result_type =
-            monad<std::pair<FirstOutSeq, SecondOutSeq>, state_type>;
+
+        monad<std::pair<FirstOutSeq, SecondOutSeq>, state_type> retval;
 
         if (first == last)
-            return result_type{};
+            return retval;
 
-        std::pair<FirstOutSeq, SecondOutSeq> out_seqs;
-        auto prev_monad = f(*first++);
-        prev_monad = prev_monad >>= [prev_monad, &out_seqs](value_type x) {
-            out_seqs.first.push_back(x.first);
-            out_seqs.second.push_back(x.second);
-            return prev_monad;
-        };
+        detail::reserve(retval.mutable_value(), first, last);
+
+        monad_type prev = f(first);
+        ++first;
+        retval.mutable_value().first.push_back(prev.value().first);
+        retval.mutable_value().second.push_back(prev.value().second);
+
         while (first != last) {
-            auto current_monad = f(*first++);
-            prev_monad = prev_monad >>= [current_monad, &out_seqs](value_type) {
-                return current_monad >>=
-                [current_monad, &out_seqs](value_type x) {
-                    out_seqs.first.push_back(x.first);
-                    out_seqs.second.push_back(x.second);
-                    return current_monad;
-                };
+            monad_type m = f(first);
+            ++first;
+            retval.mutable_value().first.push_back(m.value().first);
+            retval.mutable_value().second.push_back(m.value().second);
+            prev = prev >>= [m](typename monad_type::value_type) {
+                return m;
             };
         }
 
-        return result_type{out_seqs, prev_monad.state()};
+        retval.mutable_state() = prev.state();
+
+        return retval;
     }
 
     // filterM().  Predicate Fn must have a signature of the form
