@@ -362,7 +362,38 @@ namespace monad {
         using zip_value_type_t =
             typename zip_value_type<Fn, Iter1, Iter2>::type;
 
+        template <typename Iter1, typename Iter2>
+        struct zip_iterator
+        {
+            Iter1 first;
+            Iter2 second;
+
+            zip_iterator& operator++ ()
+            {
+                ++first;
+                ++second;
+                return *this;
+            }
+
+            friend bool operator!= (zip_iterator lhs, zip_iterator rhs)
+            { return lhs.first != rhs.first; }
+        };
+
     }
+
+}
+
+namespace std {
+
+    template <typename Iter1, typename Iter2>
+    struct iterator_traits<monad::detail::zip_iterator<Iter1, Iter2>>
+    {
+        using iterator_category = random_access_iterator_tag;
+    };
+
+}
+
+namespace monad {
 
     // zipWithM().  Predicate Fn must have a signature of the form
     // monad<...> (typename Iter1::value_type, typename Iter2::value_type).
@@ -377,30 +408,19 @@ namespace monad {
     auto zip (Fn f, Iter1 first1, Iter1 last1, Iter2 first2) ->
         monad<OutSeq, decltype(f(*first1, *first2).state())>
     {
-        using value_type = typename OutSeq::value_type;
-        using state_type = decltype(f(*first1, *first2).state());
-
-        if (first1 == last1)
-            return monad<OutSeq, state_type>{};
-
-        OutSeq out_seq;
-        auto prev_monad = f(*first1++, *first2++);
-        prev_monad = prev_monad >>= [prev_monad, &out_seq](value_type x) {
-            out_seq.push_back(x);
-            return prev_monad;
-        };
-        while (first1 != last1) {
-            auto current_monad = f(*first1++, *first2++);
-            prev_monad = prev_monad >>= [current_monad, &out_seq](value_type) {
-                return current_monad >>=
-                [current_monad, &out_seq](value_type x) {
-                    out_seq.push_back(x);
-                    return current_monad;
-                };
-            };
-        }
-
-        return monad<OutSeq, state_type>{out_seq, prev_monad.state()};
+        using zip_iter = detail::zip_iterator<Iter1, Iter2>;
+        zip_iter first{first1, first2};
+        zip_iter last{last1, first2};
+        return detail::sequence_impl<
+            zip_iter,
+            decltype(f(*first1, *first2)),
+            OutSeq,
+            decltype(f(*first1, *first2).state())
+        >(
+            [f](zip_iter it) {return f(*it.first, *it.second);},
+            first,
+            last
+        );
     }
 
     template <typename Fn, typename Range1, typename Range2>
