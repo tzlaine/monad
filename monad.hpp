@@ -126,6 +126,33 @@ namespace monad {
     ReturnMonad lift_n (Fn f, Monads... monads)
     { return fmap_n<ReturnMonad>(f, monads...); }
 
+    namespace detail {
+
+        template <typename Container, typename Iter, typename Tag>
+        void reserve_impl (Container&, Iter, Iter, Tag)
+        {}
+
+        template <typename Container, typename Iter>
+        auto reserve_impl (Container& c,
+                           Iter first,
+                           Iter last,
+                           std::random_access_iterator_tag) ->
+            decltype(c.reserve(last - first)) // For SFINAE.
+        { c.reserve(last - first); }
+
+        template <typename Container, typename Iter>
+        void reserve (Container& c, Iter first, Iter last)
+        {
+            reserve_impl(
+                c,
+                first,
+                last,
+                typename std::iterator_traits<Iter>::iterator_category{}
+            );
+        }
+
+    }
+
     // sequence().
     template <
         typename Iter,
@@ -135,6 +162,8 @@ namespace monad {
     monad<OutSeq, State> sequence (Iter first, Iter last)
     {
         monad<OutSeq, State> retval;
+
+        detail::reserve(retval.mutable_value(), first, last);
 
         bool done_with_binds = false;
         while (first != last) {
