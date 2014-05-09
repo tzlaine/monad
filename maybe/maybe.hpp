@@ -76,7 +76,7 @@ namespace monad {
         }
 
         value_type join() const
-        { return !state_.nonempty_ ? value_type{nothing} : value_; }
+        { return !state_.nonempty_ ? nothing : value_; }
 
         value_type & mutable_value ()
         { return value_; }

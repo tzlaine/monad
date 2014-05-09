@@ -113,10 +113,11 @@ namespace monad {
     { return m.fmap(f); }
 
 
-    /** TODO @c Fn must accept a single parameter to which @c T is
-        convertible.  @c Fn must return a value that is or is convertible to
-        <c>monad<T, State></c>.  From the Haskell function <c>liftM :: (Monad
-        m) => (a -> b) -> (m a -> m b)</c>. */
+    /** TODO (TODO document the wart of needing to have a fixed return type,
+        for this and for lift_n).  @c Fn must accept a single parameter to
+        which @c T is convertible.  @c Fn must return a value that is or is
+        convertible to <c>monad<T, State></c>.  From the Haskell function
+        <c>liftM :: (Monad m) => (a -> b) -> (m a -> m b)</c>. */
     template <typename T, typename State, typename Fn>
     monad<T, State> lift (Fn f, monad<T, State> m)
     {
