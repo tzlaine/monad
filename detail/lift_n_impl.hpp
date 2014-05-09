@@ -1,5 +1,17 @@
 #if !BOOST_PP_IS_ITERATING
 
+    template <typename Monad>
+    struct monad_t_param;
+
+    template <typename T, typename State>
+    struct monad_t_param<monad<T, State>>
+    {
+        using type = T;
+    };
+
+    template <typename Monad>
+    using monad_t_param_t = typename monad_t_param<Monad>::type;
+
 #  include <boost/preprocessor/repetition/enum.hpp>
 #  include <boost/preprocessor/repetition/enum_params.hpp>
 #  include <boost/preprocessor/repetition/enum_binary_params.hpp>
@@ -13,7 +25,7 @@
 #else
 
 #  define N BOOST_PP_ITERATION()
-#  define OPEN(_1, N, _3) return m##N >>= [=](typename M##N::value_type _##N) {
+#  define OPEN(_1, N, _3) return m##N >>= [=](monad_t_param_t<M##N> _##N) {
 #  define CLOSE(_1, _2, _3) };
 
     template <typename ReturnMonad,

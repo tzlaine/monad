@@ -478,6 +478,47 @@ BOOST_AUTO_TEST_CASE(list)
     BOOST_CHECK_EQUAL(join(nested_4), (monad::list<int>{1, 2, 3}));
 
 
+    // unary lift
+
+    BOOST_CHECK_EQUAL((lift(add_2<int>, m_empty_i)),
+                      m_empty_i);
+    BOOST_CHECK_EQUAL((lift(add_2<int>, m_3_i)),
+                      (monad::list<int>{5, 6, 7}));
+    BOOST_CHECK_EQUAL((lift(add_2<int>, lift(add_2<int>, m_3_i))),
+                      (monad::list<int>{7, 8, 9}));
+    BOOST_CHECK_EQUAL((lift(add_2<int>, lift(add_2<int>, m_empty_i))),
+                      m_empty_i);
+
+
+    // 2-ary lift
+
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(std::plus<int>{}, m_empty_i, m_3_i)),
+                      m_empty_i);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(std::plus<int>{}, m_3_i, m_empty_i)),
+                      m_empty_i);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(std::plus<int>{}, m_1_i, m_3_i)),
+                      (monad::list<int>{11, 12, 13}));
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(std::plus<int>{}, m_3_i, m_1_i)),
+                      (monad::list<int>{11, 12, 13}));
+
+
+    // 3-ary lift
+
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(add3<int>, m_empty_i, m_1_i, m_3_i)),
+                      m_empty_i);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(add3<int>, m_1_i, m_empty_i, m_3_i)),
+                      m_empty_i);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(add3<int>, m_1_i, m_3_i, m_empty_i)),
+                      m_empty_i);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::list<int>>(add3<int>, m_1_i, m_1_i, m_3_i)),
+                      (monad::list<int>{19, 20, 21}));
+    BOOST_CHECK_EQUAL(
+        (monad::lift_n<monad::list<int>>(add3<int>, m_1_i, m_3_i, m_3_i)),
+        (monad::list<int>{8 + 3 + 3, 8 + 3 + 4, 8 + 3 + 5, 
+                          8 + 4 + 3, 8 + 4 + 4, 8 + 4 + 5, 
+                          8 + 5 + 3, 8 + 5 + 4, 8 + 5 + 5})
+    );
+
     // TODO: Other tests go here.
 
     // TODO: Make sure to cover all differences in type that may be required
