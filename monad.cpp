@@ -86,6 +86,21 @@ int main()
               << (m_0_i >> m_3_i) << "\n";
 
 
+    // unary fmap
+
+    std::cout << "fmap(add_2<int>, " << m_nothing_i << ") = "
+              << fmap(add_2<int>, m_nothing_i) << "\n";
+
+    std::cout << "fmap(add_2<int>, " << m_3_i << ") = "
+              << fmap(add_2<int>, m_3_i) << "\n";
+
+    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_3_i << ")) = "
+              << fmap(add_2<int>, fmap(add_2<int>, m_3_i)) << "\n";
+
+    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_nothing_i << ")) = "
+              << fmap(add_2<int>, fmap(add_2<int>, m_nothing_i)) << "\n";
+
+
     // unary join
 
     monad::maybe<monad::maybe<int>> inner_bad = {{monad::nothing}};

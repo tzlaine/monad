@@ -38,6 +38,14 @@ namespace monad {
         template <typename Fn>
         this_type bind (Fn f) const;
 
+        template <typename Fn>
+        this_type fmap (Fn f)
+        {
+            return *this >>= [f](T x) {
+                return this_type{f(x)};
+            };
+        }
+
         template <typename State_>
         join_result_t<this_type, State_> join () const;
 
@@ -97,12 +105,8 @@ namespace monad {
     // Unary fmap().
     // fmap :: Functor f => (a -> b) -> f a -> f b
     template <typename T, typename State, typename Fn>
-    monad<T, State> fmap (Fn f, monad<T, State> m)
-    {
-        return m >>= [f](T x) {
-            return monad<T, State>{f(x)};
-        };
-    }
+    auto fmap (Fn f, monad<T, State> m) -> decltype(m.fmap(f))
+    { return m.fmap(f); }
 
     // Unary liftM().
     // liftM :: (Monad m) => (a -> b) -> (m a -> m b)

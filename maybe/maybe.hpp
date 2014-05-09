@@ -64,6 +64,14 @@ namespace monad {
                 return f(value_);
         }
 
+        template <typename Fn>
+        this_type fmap (Fn f)
+        {
+            return *this >>= [f](T x) {
+                return this_type{f(x)};
+            };
+        }
+
         template <typename State_>
         join_result_t<this_type, State_> join() const
         { return !state_.nonempty_ ? value_type{nothing} : value_; }
