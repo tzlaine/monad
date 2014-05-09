@@ -6,7 +6,7 @@
     monad_type operator op (monad_type lhs, monad_type rhs)         \
     {                                                               \
         using value_type = monad_type::value_type;                  \
-        return lhs >>= [lhs, rhs](value_type x) {                   \
+        return lhs >>= [rhs](value_type x) {                        \
             return rhs >>= [x](value_type y) {                      \
                 return monad_type{x + y};                           \
             };                                                      \
@@ -17,7 +17,7 @@
     monad_type name (monad_type lhs, monad_type rhs)                \
     {                                                               \
         using value_type = monad_type::value_type;                  \
-        return lhs >>= [lhs, rhs](value_type x) {                   \
+        return lhs >>= [ rhs](value_type x) {                       \
             return rhs >>= [x](value_type y) {                      \
                 return monad_type{x + y};                           \
             };                                                      \
@@ -34,7 +34,7 @@
         using monad_type =                                          \
             monad_name<BOOST_PP_ENUM_PARAMS(num_template_args, T)>; \
         using value_type = typename monad_type::value_type;         \
-        return lhs >>= [lhs, rhs](value_type x) {                   \
+        return lhs >>= [rhs](value_type x) {                        \
             return rhs >>= [x](value_type y) {                      \
                 return monad_type{x + y};                           \
             };                                                      \
@@ -51,7 +51,7 @@
         using monad_type =                                              \
             monad_name<BOOST_PP_ENUM_PARAMS(num_template_args, T)>;     \
         using value_type = typename monad_type::value_type;             \
-        return lhs >>= [lhs, rhs](value_type x) {                       \
+        return lhs >>= [rhs](value_type x) {                            \
             return rhs >>= [x](value_type y) {                          \
                 return monad_type{x + y};                               \
             };                                                          \
