@@ -225,17 +225,21 @@ BOOST_AUTO_TEST_CASE(maybe)
 
     // sequence
 
+    std::vector<monad::maybe<int>> no_maybes;
     std::vector<monad::maybe<int>> bad_maybes_1 = {monad::nothing, 0, 3};
     std::vector<monad::maybe<int>> bad_maybes_2 = {0, monad::nothing, 3};
     std::vector<monad::maybe<int>> bad_maybes_3 = {0, 3, monad::nothing};
     std::vector<monad::maybe<int>> good_maybes = {-1, 0, 3};
     monad::maybe<std::vector<int>> good_sequence{{-1, 0, 3}};
 
+    BOOST_CHECK_EQUAL((sequence(no_maybes)), monad::nothing);
     BOOST_CHECK_EQUAL((sequence(bad_maybes_1)), monad::nothing);
     BOOST_CHECK_EQUAL((sequence(bad_maybes_2)), monad::nothing);
     BOOST_CHECK_EQUAL((sequence(bad_maybes_3)), monad::nothing);
     BOOST_CHECK_EQUAL((sequence(good_maybes)), good_sequence);
 
+
+    std::vector<int> empty_set;
 
     std::vector<int> set_123 = {1, 2, 3};
     std::vector<int> set_213 = {2, 1, 3};
@@ -263,6 +267,8 @@ BOOST_AUTO_TEST_CASE(maybe)
     monad::maybe<std::vector<double>> _024_sequence_double{{0.0, 2.0, 4.0}};
     monad::maybe<std::vector<double>> _204_sequence_double{{2.0, 0.0, 4.0}};
     monad::maybe<std::vector<double>> _240_sequence_double{{2.0, 4.0, 0.0}};
+
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, empty_set)), monad::nothing);
 
     BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_123)), _123_sequence);
     BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_213)), _213_sequence);
@@ -306,6 +312,8 @@ BOOST_AUTO_TEST_CASE(maybe)
     monad::maybe<unzipped_pair> _204_unzipped_sequence{unzipped_pair{{2, 0, 4}, {2.5, 0.5, 4.5}}};
     monad::maybe<unzipped_pair> _240_unzipped_sequence{unzipped_pair{{2, 4, 0}, {2.5, 4.5, 0.5}}};
 
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, empty_set)), monad::nothing);
+
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_123)), _123_unzipped_sequence);
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_213)), _213_unzipped_sequence);
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_231)), _231_unzipped_sequence);
@@ -340,6 +348,8 @@ BOOST_AUTO_TEST_CASE(maybe)
 
     const double epsilon = 1.0e-5;
 
+    BOOST_CHECK_EQUAL(monad::fold(fold_product, 1.0, empty_set), monad::nothing);
+
     BOOST_CHECK(fold_product_result != monad::nothing);
     BOOST_CHECK_CLOSE(fold_product_result.value(), 6.0, epsilon);
     BOOST_CHECK(fold_quotient_result_0 != monad::nothing);
@@ -362,6 +372,8 @@ BOOST_AUTO_TEST_CASE(maybe)
     monad::maybe<std::vector<int>> _13_sequence{{1, 3}};
     monad::maybe<std::vector<int>> _31_sequence{{3, 1}};
 
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, empty_set)), monad::nothing);
+
     BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_123)), _13_sequence);
     BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_213)), _13_sequence);
     BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_231)), _31_sequence);
@@ -373,8 +385,6 @@ BOOST_AUTO_TEST_CASE(maybe)
 
     // zip
 
-    // TODO: Test empty case(s) for all sequence functions.
-
     std::vector<float> set_neg_111_float = {-1.0f, -1.0f, -1.0f};
     std::vector<float> set_024_float = {0.0f, 2.0f, 4.0f};
 
@@ -384,6 +394,8 @@ BOOST_AUTO_TEST_CASE(maybe)
     };
 
     monad::maybe<std::vector<double>> _147_sequence_double{{1.0, 4.0, 7.0}};
+
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, empty_set, set_024_float)), monad::nothing);
 
     BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_123, set_024_float)), _147_sequence_double);
     BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_123, set_neg_111_float)), monad::nothing);
@@ -397,9 +409,6 @@ BOOST_AUTO_TEST_CASE(list)
     monad::list<int> m_empty_i;
     monad::list<int> m_1_i{8};
     monad::list<int> m_3_i{3, 4, 5};
-
-    // TODO: Make sure to cover all differences in type that may be required
-    // by list's API and its associated monadic functions.
 
     // operator>>=
 
@@ -470,4 +479,9 @@ BOOST_AUTO_TEST_CASE(list)
 
 
     // TODO: Other tests go here.
+
+    // TODO: Make sure to cover all differences in type that may be required
+    // by list's API and its associated monadic functions.
+
+    // TODO: Make sure to cover all empty set cases.
 }
