@@ -35,9 +35,14 @@ namespace monad {
         state_type state () const
         { return state_; }
 
+        /** TODO @c Fn must accept a single parameter to which @c value_type is
+            convertible.  @c Fn must return @c this_type. */
         template <typename Fn>
         this_type bind (Fn f) const;
 
+        /** TODO @c Fn must accept a single parameter to which @c value_type is
+            convertible.  @c Fn must return a value that is or is convertible
+            to @c this_type. */
         template <typename Fn>
         this_type fmap (Fn f)
         {
@@ -102,14 +107,19 @@ namespace monad {
     auto join (monad<T, State> m) -> decltype(m.template join<State>())
     { return m.template join<State>(); }
 
-    // Unary fmap().
-    // fmap :: Functor f => (a -> b) -> f a -> f b
+    /** TODO @c Fn must accept a single parameter to which @c T is
+        convertible.  @c Fn must return a value that is or is convertible to
+        <c>monad<T, State></c>.  From the Haskell function <c>fmap :: Functor
+        f => (a -> b) -> f a -> f b</c>. */
     template <typename T, typename State, typename Fn>
     auto fmap (Fn f, monad<T, State> m) -> decltype(m.fmap(f))
     { return m.fmap(f); }
 
-    // Unary liftM().
-    // liftM :: (Monad m) => (a -> b) -> (m a -> m b)
+
+    /** TODO @c Fn must accept a single parameter to which @c T is
+        convertible.  @c Fn must return a value that is or is convertible to
+        <c>monad<T, State></c>.  From the Haskell function <c>liftM :: (Monad
+        m) => (a -> b) -> (m a -> m b)</c>. */
     template <typename T, typename State, typename Fn>
     monad<T, State> lift (Fn f, monad<T, State> m)
     {
@@ -118,8 +128,12 @@ namespace monad {
         };
     }
 
-    // N-ary liftM*().
-    // liftM :: (Monad m) => (a -> b -> ...) -> (m a -> m b -> ...)
+    /** N-ary version of lift(). @c Fn must accept a single@c
+        sizeof...(Monads) parameters; the types @c Monads::value_type... must
+        be convertible to the respective parameters of @c Fn.  @c Fn must
+        return a value that is or is convertible to @c ReturnMonad.  From the
+        Haskell function <c>liftM :: (Monad m) => (a -> b) -> (m a -> m
+        b)</c>. */
     template <typename ReturnMonad, typename Fn, typename ...Monads>
     ReturnMonad lift_n (Fn f, Monads... monads)
     {
