@@ -79,14 +79,14 @@ namespace monad {
     // monad<...> (T).
     // (>>=) :: m a -> (a -> m b) -> m b
     template <typename T, typename State, typename Fn>
-    monad<T, State> operator>>= (monad<T, State> m, Fn f)
+    auto operator>>= (monad<T, State> m, Fn f) -> decltype(m.bind(f))
     { return m.bind(f); }
 
     // operator<<=().  Fn must have a signature of the form
     // monad<...> (T).
     // (=<<) :: Monad m => (a -> m b) -> m a -> m b
     template <typename T, typename State, typename Fn>
-    monad<T, State> operator<<= (Fn f, monad<T, State> m)
+    auto operator<<= (Fn f, monad<T, State> m) -> decltype(m.bind(f))
     { return m.bind(f); }
 
     // operator>>().  Though the Haskell version operates on two monadic
