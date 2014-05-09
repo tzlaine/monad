@@ -83,7 +83,7 @@ namespace monad {
 
         template <typename State_>
         join_result_t<this_type, State_> join() const
-        { return value_type{value_}; }
+        { return value_; }
 
         value_type & mutable_value ()
         { return value_; }

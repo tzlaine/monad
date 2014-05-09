@@ -1,6 +1,7 @@
 #include "maybe/maybe.hpp"
 #include "maybe/io.hpp"
 #include "list/list.hpp"
+#include "list/io.hpp"
 #include "declare_operators.hpp"
 
 #include <iostream>
@@ -42,7 +43,7 @@ std::ostream& operator<< (std::ostream& os,
         for (auto x : m.value().first) {
             os << x << ' ';
         }
-        os << "],[ ";
+        os << "], [ ";
         for (auto x : m.value().second) {
             os << x << ' ';
         }
@@ -51,7 +52,7 @@ std::ostream& operator<< (std::ostream& os,
     return os;
 }
 
-int main()
+void test_maybe()
 {
     monad::maybe<int> m_nothing_i(monad::nothing);
     monad::maybe<int> m_0_i(0);
@@ -75,6 +76,8 @@ int main()
     std::cout << m_0_i << " + " << m_3_i << " + " << m_nothing_i << " = "
               << (m_0_i + m_3_i + m_nothing_i) << "\n";
 
+    std::cout << "\n";
+
 
     // operator>>
     std::cout << m_nothing_i << " >> " << m_3_i << " = "
@@ -85,6 +88,8 @@ int main()
 
     std::cout << m_0_i << " >> " << m_3_i << " = "
               << (m_0_i >> m_3_i) << "\n";
+
+    std::cout << "\n";
 
 
     // unary fmap
@@ -101,6 +106,8 @@ int main()
     std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_nothing_i << ")) = "
               << fmap(add_2<int>, fmap(add_2<int>, m_nothing_i)) << "\n";
 
+    std::cout << "\n";
+
 
     // unary join
 
@@ -114,6 +121,8 @@ int main()
               << join(outer_bad) << "\n";
     std::cout << "join(both_good=" << both_good << ") = "
               << join(both_good) << "\n";
+
+    std::cout << "\n";
 
 
     // unary lift
@@ -142,6 +151,8 @@ int main()
     std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_nothing_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_nothing_i) << "\n";
 
+    std::cout << "\n";
+
 
     // 3-ary lift
 
@@ -153,6 +164,8 @@ int main()
 
     std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_nothing_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_nothing_i) << "\n";
+
+    std::cout << "\n";
 
 
     // sequence
@@ -178,6 +191,8 @@ int main()
               << monad::sequence(good_maybes.begin(), good_maybes.end()) << "\n";
     std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
               << monad::sequence(good_maybes) << "\n";
+
+    std::cout << "\n";
 
 
     std::vector<int> set_1 = {1, 2, 3};
@@ -211,6 +226,8 @@ int main()
     std::cout << "map(map_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
               << monad::map(map_odd, set_1) << "\n";
 
+    std::cout << "\n";
+
 
     // map
 
@@ -242,6 +259,8 @@ int main()
     std::cout << "map_unzip(map_unzip_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
               << monad::map_unzip(map_unzip_odd, set_1) << "\n";
 
+    std::cout << "\n";
+
 
     // fold
 
@@ -265,6 +284,8 @@ int main()
               << monad::fold(fold_quotient, 1000.0, set_2.begin(), set_2.end()) << "\n";
     std::cout << "fold(fold_quotient, 1000.0, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
               << monad::fold(fold_quotient, 1000.0, set_2) << "\n";
+
+    std::cout << "\n";
 
 
     // filter
@@ -294,6 +315,8 @@ int main()
     std::cout << "filter(filter_flag_zero, set_5=[ " << set_5[0] << " " << set_5[1] << " " << set_5[2] << " ]) = "
               << monad::filter(filter_flag_zero, set_5) << "\n";
 
+    std::cout << "\n";
+
 
     // zip
 
@@ -316,6 +339,17 @@ int main()
               << set_3[0] << " " << set_3[1] << " " << set_3[2] << " ]) = "
               << monad::zip(zip_sum_nonzero, set_1, set_3) << "\n";
 
+    std::cout << "\n\n";
+}
+
+void test_list ()
+{
+}
+
+int main ()
+{
+    test_maybe();
+    test_list();
 
     std::cout << "ok.";
 
