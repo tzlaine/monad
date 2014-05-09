@@ -6,8 +6,92 @@
 
 #include <iostream>
 
+#define BOOST_TEST_MODULE Monad
 
-MONAD_TEMPLATE_BINARY_OP(+, monad::maybe, 1);
+#include <cstdio>
+#include <boost/test/included/unit_test.hpp>
+
+
+BOOST_AUTO_TEST_CASE(maybe_regularity)
+{
+    // default constructible
+    monad::maybe<int> default_;
+
+    monad::maybe<int> _1 = {1};
+    monad::maybe<int> nothing = monad::nothing;
+
+    // copy constructible
+    monad::maybe<int> _1_copy{_1};
+    monad::maybe<int> nothing_copy{nothing};
+
+    // copy assignable
+    monad::maybe<int> assigned_from_1 = _1;
+    monad::maybe<int> assigned_from_nothing = nothing;
+
+    // equality comparable
+    BOOST_CHECK(default_ == nothing);
+
+    BOOST_CHECK(_1_copy == _1);
+    BOOST_CHECK(nothing_copy == nothing);
+    BOOST_CHECK(assigned_from_1 == _1);
+    BOOST_CHECK(assigned_from_nothing == nothing);
+
+    BOOST_CHECK(_1 != nothing);
+
+    BOOST_CHECK(!(_1_copy != _1));
+    BOOST_CHECK(!(nothing_copy != nothing));
+    BOOST_CHECK(!(assigned_from_1 != _1));
+    BOOST_CHECK(!(assigned_from_nothing != nothing));
+
+    monad::maybe<int> nothing_with_1{1, {false}};
+    monad::maybe<int> nothing_with_2{2, {false}};
+    BOOST_CHECK(nothing_with_1 == nothing_with_2);
+
+    // mutation does not affect copies
+    assigned_from_1 = nothing;
+    BOOST_CHECK(_1 != nothing);
+}
+
+
+BOOST_AUTO_TEST_CASE(list_regularity)
+{
+    // default constructible
+    monad::list<int> default_;
+
+    monad::list<int> empty = {};
+    monad::list<int> _3 = {1, 2, 3};
+
+    // copy constructible
+    monad::list<int> _3_copy{_3};
+    monad::list<int> empty_copy{empty};
+
+    // copy assignable
+    monad::list<int> assigned_from_3 = _3;
+    monad::list<int> assigned_from_empty = empty;
+
+    // equality comparable
+    BOOST_CHECK(default_ == empty);
+
+    BOOST_CHECK(_3_copy == _3);
+    BOOST_CHECK(empty_copy == empty);
+    BOOST_CHECK(assigned_from_3 == _3);
+    BOOST_CHECK(assigned_from_empty == empty);
+
+    BOOST_CHECK(_3 != empty);
+
+    BOOST_CHECK(!(_3_copy != _3));
+    BOOST_CHECK(!(empty_copy != empty));
+    BOOST_CHECK(!(assigned_from_3 != _3));
+    BOOST_CHECK(!(assigned_from_empty != empty));
+
+    // mutation does not affect copies
+    assigned_from_3 = empty;
+    BOOST_CHECK(_3 != empty);
+}
+
+
+// TODO: Test separately.
+// MONAD_TEMPLATE_BINARY_OP(+, monad::maybe, 1);
 
 template <typename T>
 T add3 (T l, T m, T r)
@@ -17,157 +101,126 @@ template <typename T>
 T add_2 (T t)
 { return t + 2; }
 
-template <typename T>
-std::ostream& operator<< (std::ostream& os, monad::maybe<std::vector<T>> m)
-{
-    if (!m.state().nonempty_) {
-        os << "Nothing";
-    } else {
-        os << "Just [ ";
-        for (auto x : m.value()) {
-            os << x << ' ';
+namespace monad {
+
+    template <typename T>
+    std::ostream& operator<< (std::ostream& os, maybe<std::vector<T>> m)
+    {
+        if (!m.state().nonempty_) {
+            os << "Nothing";
+        } else {
+            os << "Just [ ";
+            for (auto x : m.value()) {
+                os << x << ' ';
+            }
+            os << ']';
         }
-        os << ']';
+        return os;
     }
-    return os;
+
+    template <typename T, typename U>
+    std::ostream& operator<< (std::ostream& os,
+                              maybe<std::pair<std::vector<T>, std::vector<U>>> m)
+    {
+        if (!m.state().nonempty_) {
+            os << "Nothing";
+        } else {
+            os << "Just ([ ";
+            for (auto x : m.value().first) {
+                os << x << ' ';
+            }
+            os << "], [ ";
+            for (auto x : m.value().second) {
+                os << x << ' ';
+            }
+            os << "])";
+        }
+        return os;
+    }
+
 }
 
-template <typename T, typename U>
-std::ostream& operator<< (std::ostream& os,
-                          monad::maybe<std::pair<std::vector<T>, std::vector<U>>> m)
+
+BOOST_AUTO_TEST_CASE(maybe)
 {
-    if (!m.state().nonempty_) {
-        os << "Nothing";
-    } else {
-        os << "Just ([ ";
-        for (auto x : m.value().first) {
-            os << x << ' ';
-        }
-        os << "], [ ";
-        for (auto x : m.value().second) {
-            os << x << ' ';
-        }
-        os << "])";
-    }
-    return os;
-}
+    monad::maybe<int> m_nothing_i = monad::nothing;
+    monad::maybe<int> m_0_i = 0;
+    monad::maybe<int> m_3_i = 3;
 
-void test_maybe()
-{
-    monad::maybe<int> m_nothing_i(monad::nothing);
-    monad::maybe<int> m_0_i(0);
-    monad::maybe<int> m_3_i(3);
-
-
-    // equality
-
-    std::cout << m_nothing_i << " == " << m_nothing_i << " = "
-              << (m_nothing_i == m_nothing_i) << "\n";
-    std::cout << m_nothing_i << " == " << m_3_i << " = "
-              << (m_nothing_i == m_3_i) << "\n";
-    std::cout << m_0_i << " == " << m_3_i << " = "
-              << (m_0_i == m_3_i) << "\n";
-    std::cout << m_nothing_i << " != " << m_nothing_i << " = "
-              << (m_nothing_i != m_nothing_i) << "\n";
-    std::cout << m_nothing_i << " != " << m_3_i << " = "
-              << (m_nothing_i != m_3_i) << "\n";
-    std::cout << m_0_i << " != " << m_3_i << " = "
-              << (m_0_i != m_3_i) << "\n";
-
-    std::cout << "\n";
-
+    auto plus = [](monad::maybe<int> lhs, monad::maybe<int> rhs) {
+        using value_type = monad::maybe<int>::value_type;
+        return lhs >>= [rhs](value_type x) {
+            return rhs >>= [x](value_type y) {
+                return monad::maybe<int>{x + y};
+            };
+        };
+    };
 
     // operator>>=
 
-    std::cout << m_nothing_i << " + " << m_3_i << " = "
-              << (m_nothing_i + m_3_i) << "\n";
-    std::cout << m_3_i << " + " << m_nothing_i << " = "
-              << (m_3_i + m_nothing_i) << "\n";
-    std::cout << m_0_i << " + " << m_3_i << " = "
-              << (m_0_i + m_3_i) << "\n";
-    std::cout << m_0_i << " + " << m_3_i << " + " << m_0_i << " = "
-              << (m_0_i + m_3_i + m_0_i) << "\n";
-    std::cout << m_0_i << " + " << m_3_i << " + " << m_nothing_i << " = "
-              << (m_0_i + m_3_i + m_nothing_i) << "\n";
-
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL(plus(m_nothing_i, m_3_i), monad::nothing);
+    BOOST_CHECK_EQUAL(plus(m_3_i, m_nothing_i), monad::nothing);
+    BOOST_CHECK_EQUAL(plus(m_0_i, m_3_i), m_3_i);
+    BOOST_CHECK_EQUAL(plus(m_3_i, m_0_i), m_3_i);
 
 
     // operator>>
-    std::cout << m_nothing_i << " >> " << m_3_i << " = "
-              << (m_nothing_i >> m_3_i) << "\n";
-    std::cout << m_3_i << " >> " << m_nothing_i << " = "
-              << (m_3_i >> m_nothing_i) << "\n";
-    std::cout << m_0_i << " >> " << m_3_i << " = "
-              << (m_0_i >> m_3_i) << "\n";
 
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL(m_nothing_i >> m_3_i, monad::nothing);
+    BOOST_CHECK_EQUAL(m_3_i >> m_nothing_i, monad::nothing);
+    BOOST_CHECK_EQUAL(m_3_i >> m_0_i, m_0_i);
+    BOOST_CHECK_EQUAL(m_0_i >> m_3_i, m_3_i);
 
 
     // fmap
 
-    std::cout << "fmap(add_2<int>, " << m_nothing_i << ") = "
-              << fmap(add_2<int>, m_nothing_i) << "\n";
-    std::cout << "fmap(add_2<int>, " << m_3_i << ") = "
-              << fmap(add_2<int>, m_3_i) << "\n";
-    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_3_i << ")) = "
-              << fmap(add_2<int>, fmap(add_2<int>, m_3_i)) << "\n";
-    std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_nothing_i << ")) = "
-              << fmap(add_2<int>, fmap(add_2<int>, m_nothing_i)) << "\n";
-
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((fmap(add_2<int>, m_nothing_i)), monad::nothing);
+    BOOST_CHECK_EQUAL((fmap(add_2<int>, m_3_i)), monad::maybe<int>{5});
+    BOOST_CHECK_EQUAL((fmap(add_2<int>, fmap(add_2<int>, m_3_i))), monad::maybe<int>{7});
+    BOOST_CHECK_EQUAL((fmap(add_2<int>, fmap(add_2<int>, m_nothing_i))), monad::nothing);
 
 
     // join
 
     monad::maybe<monad::maybe<int>> inner_bad = {{monad::nothing}};
     monad::maybe<monad::maybe<int>> outer_bad = {monad::nothing};
-    monad::maybe<monad::maybe<int>> both_good = {{1}};
+    monad::maybe<monad::maybe<int>> both_good = {{3}};
 
-    std::cout << "join(inner_bad=" << inner_bad << ") = "
-              << join(inner_bad) << "\n";
-    std::cout << "join(outer_bad=" << outer_bad << ") = "
-              << join(outer_bad) << "\n";
-    std::cout << "join(both_good=" << both_good << ") = "
-              << join(both_good) << "\n";
-
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL(join(inner_bad), monad::nothing);
+    BOOST_CHECK_EQUAL(join(outer_bad), monad::nothing);
+    BOOST_CHECK_EQUAL(join(both_good), m_3_i);
 
 
     // unary lift
 
-    std::cout << "lift(add_2<int>, " << m_nothing_i << ") = "
-              << lift(add_2<int>, m_nothing_i) << "\n";
-    std::cout << "lift(add_2<int>, " << m_3_i << ") = "
-              << lift(add_2<int>, m_3_i) << "\n";
-    std::cout << "lift(add_2<int>, lift(add_2<int>, " << m_3_i << ")) = "
-              << lift(add_2<int>, lift(add_2<int>, m_3_i)) << "\n";
-    std::cout << "lift(add_2<int>, lift(add_2<int>, " << m_nothing_i << ")) = "
-              << lift(add_2<int>, lift(add_2<int>, m_nothing_i)) << "\n";
+    BOOST_CHECK_EQUAL((lift(add_2<int>, m_nothing_i)), monad::nothing);
+    BOOST_CHECK_EQUAL((lift(add_2<int>, m_3_i)), monad::maybe<int>{5});
+    BOOST_CHECK_EQUAL((lift(add_2<int>, lift(add_2<int>, m_3_i))), monad::maybe<int>{7});
+    BOOST_CHECK_EQUAL((lift(add_2<int>, lift(add_2<int>, m_nothing_i))), monad::nothing);
 
 
     // 2-ary lift
 
-    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ")) = "
-              << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_3_i) << "\n";
-    std::cout << "lift_n(add<int>, " << m_nothing_i << ", " << m_3_i << ")) = "
-              << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_nothing_i, m_3_i) << "\n";
-    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_nothing_i << ")) = "
-              << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_nothing_i) << "\n";
-
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_nothing_i, m_3_i)),
+                      monad::nothing);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_nothing_i)),
+                      monad::nothing);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_0_i, m_3_i)),
+                      m_3_i);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_0_i)),
+                      m_3_i);
 
 
     // 3-ary lift
 
-    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_3_i << ")) = "
-              << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_3_i) << "\n";
-    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_nothing_i << ", " << m_3_i << ")) = "
-              << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_nothing_i, m_3_i) << "\n";
-    std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_nothing_i << ")) = "
-              << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_nothing_i) << "\n";
-
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(add3<int>, m_nothing_i, m_3_i, m_3_i)),
+                      monad::nothing);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_nothing_i, m_3_i)),
+                      monad::nothing);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_nothing_i)),
+                      monad::nothing);
+    BOOST_CHECK_EQUAL((monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_3_i)),
+                      monad::maybe<int>{9});
 
 
     // sequence
@@ -176,59 +229,54 @@ void test_maybe()
     std::vector<monad::maybe<int>> bad_maybes_2 = {0, monad::nothing, 3};
     std::vector<monad::maybe<int>> bad_maybes_3 = {0, 3, monad::nothing};
     std::vector<monad::maybe<int>> good_maybes = {-1, 0, 3};
+    monad::maybe<std::vector<int>> good_sequence{{-1, 0, 3}};
 
-    std::cout << "sequence(bad_maybes_1=[ " << bad_maybes_1[0] << " " << bad_maybes_1[1] << " " << bad_maybes_1[2] << " ]) = "
-              << monad::sequence(bad_maybes_1.begin(), bad_maybes_1.end()) << "\n";
-    std::cout << "sequence(bad_maybes_1=[ " << bad_maybes_1[0] << " " << bad_maybes_1[1] << " " << bad_maybes_1[2] << " ]) = "
-              << monad::sequence(bad_maybes_1) << "\n";
-    std::cout << "sequence(bad_maybes_2=[ " << bad_maybes_2[0] << " " << bad_maybes_2[1] << " " << bad_maybes_2[2] << " ]) = "
-              << monad::sequence(bad_maybes_2.begin(), bad_maybes_2.end()) << "\n";
-    std::cout << "sequence(bad_maybes_2=[ " << bad_maybes_2[0] << " " << bad_maybes_2[1] << " " << bad_maybes_2[2] << " ]) = "
-              << monad::sequence(bad_maybes_2) << "\n";
-    std::cout << "sequence(bad_maybes_3=[ " << bad_maybes_3[0] << " " << bad_maybes_3[1] << " " << bad_maybes_3[2] << " ]) = "
-              << monad::sequence(bad_maybes_3.begin(), bad_maybes_3.end()) << "\n";
-    std::cout << "sequence(bad_maybes_3=[ " << bad_maybes_3[0] << " " << bad_maybes_3[1] << " " << bad_maybes_3[2] << " ]) = "
-              << monad::sequence(bad_maybes_3) << "\n";
-    std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
-              << monad::sequence(good_maybes.begin(), good_maybes.end()) << "\n";
-    std::cout << "sequence(good_maybes=[ " << good_maybes[0] << " " << good_maybes[1] << " " << good_maybes[2] << " ]) = "
-              << monad::sequence(good_maybes) << "\n";
-
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((sequence(bad_maybes_1)), monad::nothing);
+    BOOST_CHECK_EQUAL((sequence(bad_maybes_2)), monad::nothing);
+    BOOST_CHECK_EQUAL((sequence(bad_maybes_3)), monad::nothing);
+    BOOST_CHECK_EQUAL((sequence(good_maybes)), good_sequence);
 
 
-    std::vector<int> set_1 = {1, 2, 3};
-    std::vector<int> set_2 = {0, 2, 4};
-    std::vector<int> set_3 = {-1, -1, -1};
-    std::vector<int> set_4 = {2, 0, 4};
-    std::vector<int> set_5 = {2, 4, 0};
+    std::vector<int> set_123 = {1, 2, 3};
+    std::vector<int> set_213 = {2, 1, 3};
+    std::vector<int> set_231 = {2, 3, 1};
+    std::vector<int> set_024 = {0, 2, 4};
+    std::vector<int> set_204 = {2, 0, 4};
+    std::vector<int> set_240 = {2, 4, 0};
+    std::vector<int> set_neg_111 = {-1, -1, -1};
 
 
     // map
 
     auto map_nonzero = [](int x) {
-        monad::maybe<int> retval = x ? monad::maybe<int>{x} : monad::maybe<int>{monad::nothing};
-        return retval;
+        return x ? monad::maybe<int>{x} : monad::nothing;
     };
-    auto map_odd = [](int x) {
-        monad::maybe<int> retval = x % 2 ? monad::maybe<int>{x} : monad::maybe<int>{monad::nothing};
-        return retval;
+    auto map_even = [](int x) {
+        return x % 2 == 0 ? monad::maybe<int>{x} : monad::nothing;
     };
 
-    std::cout << "map(map_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map(map_nonzero, set_1.begin(), set_1.end()) << "\n";
-    std::cout << "map(map_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map(map_nonzero, set_1) << "\n";
-    std::cout << "map(map_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::map(map_nonzero, set_2.begin(), set_2.end()) << "\n";
-    std::cout << "map(map_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::map(map_nonzero, set_2) << "\n";
-    std::cout << "map(map_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map(map_odd, set_1.begin(), set_1.end()) << "\n";
-    std::cout << "map(map_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map(map_odd, set_1) << "\n";
+    monad::maybe<std::vector<int>> _123_sequence{{1, 2, 3}};
+    monad::maybe<std::vector<int>> _213_sequence{{2, 1, 3}};
+    monad::maybe<std::vector<int>> _231_sequence{{2, 3, 1}};
+    monad::maybe<std::vector<int>> _024_sequence{{0, 2, 4}};
+    monad::maybe<std::vector<int>> _204_sequence{{2, 0, 4}};
+    monad::maybe<std::vector<int>> _240_sequence{{2, 4, 0}};
 
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_123)), _123_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_213)), _213_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_231)), _231_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_024)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_204)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_240)), monad::nothing);
+
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_123)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_213)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_231)), monad::nothing);
+
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_024)), _024_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_204)), _204_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_240)), _240_sequence);
 
 
     // map
@@ -237,31 +285,40 @@ void test_maybe()
         monad::maybe<std::pair<int, double>> retval =
             x ?
             monad::maybe<std::pair<int, double>>{{x, x + 0.5}} :
-            monad::maybe<std::pair<int, double>>{monad::nothing};
+            monad::nothing;
         return retval;
     };
-    auto map_unzip_odd = [](int x) {
+    auto map_unzip_even = [](int x) {
         monad::maybe<std::pair<int, double>> retval =
-            x % 2 ?
+            x % 2 == 0 ?
             monad::maybe<std::pair<int, double>>{{x, x + 0.5}} :
-            monad::maybe<std::pair<int, double>>{monad::nothing};
+            monad::nothing;
         return retval;
     };
 
-    std::cout << "map_unzip(map_unzip_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map_unzip(map_unzip_nonzero, set_1.begin(), set_1.end()) << "\n";
-    std::cout << "map_unzip(map_unzip_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map_unzip(map_unzip_nonzero, set_1) << "\n";
-    std::cout << "map_unzip(map_unzip_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::map_unzip(map_unzip_nonzero, set_2.begin(), set_2.end()) << "\n";
-    std::cout << "map_unzip(map_unzip_nonzero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::map_unzip(map_unzip_nonzero, set_2) << "\n";
-    std::cout << "map_unzip(map_unzip_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map_unzip(map_unzip_odd, set_1.begin(), set_1.end()) << "\n";
-    std::cout << "map_unzip(map_unzip_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::map_unzip(map_unzip_odd, set_1) << "\n";
+    using unzipped_pair = std::pair<std::vector<int>, std::vector<double>>;
+    monad::maybe<unzipped_pair> _123_unzipped_sequence{unzipped_pair{{1, 2, 3}, {1.5, 2.5, 3.5}}};
+    monad::maybe<unzipped_pair> _213_unzipped_sequence{unzipped_pair{{2, 1, 3}, {2.5, 1.5, 3.5}}};
+    monad::maybe<unzipped_pair> _231_unzipped_sequence{unzipped_pair{{2, 3, 1}, {2.5, 3.5, 1.5}}};
+    monad::maybe<unzipped_pair> _024_unzipped_sequence{unzipped_pair{{0, 2, 4}, {0.5, 2.5, 4.5}}};
+    monad::maybe<unzipped_pair> _204_unzipped_sequence{unzipped_pair{{2, 0, 4}, {2.5, 0.5, 4.5}}};
+    monad::maybe<unzipped_pair> _240_unzipped_sequence{unzipped_pair{{2, 4, 0}, {2.5, 4.5, 0.5}}};
 
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_123)), _123_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_213)), _213_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_231)), _231_unzipped_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_024)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_204)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_240)), monad::nothing);
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_123)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_213)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_231)), monad::nothing);
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_024)), _024_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_204)), _204_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_240)), _240_unzipped_sequence);
 
 
     // fold
@@ -270,24 +327,25 @@ void test_maybe()
         return monad::maybe<double>{lhs * rhs};
     };
     auto fold_quotient = [](double lhs, int rhs) {
-        monad::maybe<double> retval = rhs ? monad::maybe<double>{lhs / rhs} : monad::maybe<double>{monad::nothing};
-        return retval;
+        return rhs ? monad::maybe<double>{lhs / rhs} : monad::nothing;
     };
 
-    std::cout << "fold(fold_product, 1.0, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::fold(fold_product, 1.0, set_1.begin(), set_1.end()) << "\n";
-    std::cout << "fold(fold_product, 1.0, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::fold(fold_product, 1.0, set_1) << "\n";
-    std::cout << "fold(fold_quotient, 1000.0, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::fold(fold_quotient, 1000.0, set_1.begin(), set_1.end()) << "\n";
-    std::cout << "fold(fold_quotient, 1000.0, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::fold(fold_quotient, 1000.0, set_1) << "\n";
-    std::cout << "fold(fold_quotient, 1000.0, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::fold(fold_quotient, 1000.0, set_2.begin(), set_2.end()) << "\n";
-    std::cout << "fold(fold_quotient, 1000.0, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::fold(fold_quotient, 1000.0, set_2) << "\n";
+    auto fold_product_result = monad::fold(fold_product, 1.0, set_123);
+    auto fold_quotient_result_0 = monad::fold(fold_quotient, 1000.0, set_123);
+    auto fold_quotient_result_1 = monad::fold(fold_quotient, 1000.0, set_024);
+    auto fold_quotient_result_2 = monad::fold(fold_quotient, 1000.0, set_204);
+    auto fold_quotient_result_3 = monad::fold(fold_quotient, 1000.0, set_240);
 
-    std::cout << "\n";
+    const double epsilon = 1.0e-5;
+
+    BOOST_CHECK(fold_product_result != monad::nothing);
+    BOOST_CHECK_CLOSE(fold_product_result.value(), 6.0, epsilon);
+    BOOST_CHECK(fold_quotient_result_0 != monad::nothing);
+    BOOST_CHECK_CLOSE(fold_quotient_result_0.value(), 1000.0 / 6.0, epsilon);
+
+    BOOST_CHECK_EQUAL(fold_quotient_result_1, monad::nothing);
+    BOOST_CHECK_EQUAL(fold_quotient_result_2, monad::nothing);
+    BOOST_CHECK_EQUAL(fold_quotient_result_3, monad::nothing);
 
 
     // filter
@@ -296,76 +354,48 @@ void test_maybe()
         return monad::maybe<bool>{x % 2 == 1};
     };
     auto filter_flag_zero = [](int x) {
-        monad::maybe<bool> retval = x ? monad::maybe<bool>{true} : monad::maybe<bool>{monad::nothing};
-        return retval;
+        return x ? monad::maybe<bool>{true} : monad::nothing;
     };
 
-    std::cout << "filter(filter_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::filter(filter_odd, set_1.begin(), set_1.end()) << "\n";
-    std::cout << "filter(filter_odd, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ]) = "
-              << monad::filter(filter_odd, set_1) << "\n";
-    std::cout << "filter(filter_flag_zero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::filter(filter_flag_zero, set_2.begin(), set_2.end()) << "\n";
-    std::cout << "filter(filter_flag_zero, set_2=[ " << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::filter(filter_flag_zero, set_2) << "\n";
-    std::cout << "filter(filter_flag_zero, set_4=[ " << set_4[0] << " " << set_4[1] << " " << set_4[2] << " ]) = "
-              << monad::filter(filter_flag_zero, set_4.begin(), set_4.end()) << "\n";
-    std::cout << "filter(filter_flag_zero, set_4=[ " << set_4[0] << " " << set_4[1] << " " << set_4[2] << " ]) = "
-              << monad::filter(filter_flag_zero, set_4) << "\n";
-    std::cout << "filter(filter_flag_zero, set_5=[ " << set_5[0] << " " << set_5[1] << " " << set_5[2] << " ]) = "
-              << monad::filter(filter_flag_zero, set_5.begin(), set_5.end()) << "\n";
-    std::cout << "filter(filter_flag_zero, set_5=[ " << set_5[0] << " " << set_5[1] << " " << set_5[2] << " ]) = "
-              << monad::filter(filter_flag_zero, set_5) << "\n";
+    monad::maybe<std::vector<int>> _13_sequence{{1, 3}};
+    monad::maybe<std::vector<int>> _31_sequence{{3, 1}};
 
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_123)), _13_sequence);
+    BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_213)), _13_sequence);
+    BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_231)), _31_sequence);
+
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, set_024)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, set_204)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, set_240)), monad::nothing);
 
 
     // zip
 
+    // TODO: Test with float for the second sequence's value_type,
+    // monad::maybe<double> as the return type of zip_sum_nonzero().  Audit
+    // other tests for similar shortcomings.
+
+    // TODO: Test empty case(s) for all sequence functions.
+
     auto zip_sum_nonzero = [](int lhs, int rhs) {
         int sum = lhs + rhs;
-        monad::maybe<int> retval = sum ? monad::maybe<int>{sum} : monad::maybe<int>{monad::nothing};
-        return retval;
+        return sum ? monad::maybe<int>{sum} : monad::nothing;
     };
 
-    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_2=[ "
-              << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::zip(zip_sum_nonzero, set_1.begin(), set_1.end(), set_2.begin()) << "\n";
-    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_2=[ "
-              << set_2[0] << " " << set_2[1] << " " << set_2[2] << " ]) = "
-              << monad::zip(zip_sum_nonzero, set_1, set_2) << "\n";
-    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_3=[ "
-              << set_3[0] << " " << set_3[1] << " " << set_3[2] << " ]) = "
-              << monad::zip(zip_sum_nonzero, set_1.begin(), set_1.end(), set_3.begin()) << "\n";
-    std::cout << "zip(zip_sum_nonzero, set_1=[ " << set_1[0] << " " << set_1[1] << " " << set_1[2] << " ], set_3=[ "
-              << set_3[0] << " " << set_3[1] << " " << set_3[2] << " ]) = "
-              << monad::zip(zip_sum_nonzero, set_1, set_3) << "\n";
+    monad::maybe<std::vector<int>> _147_sequence{{1, 4, 7}};
 
-    std::cout << "\n\n";
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_123, set_024)), _147_sequence);
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_123, set_neg_111)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_213, set_neg_111)), monad::nothing);
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_231, set_neg_111)), monad::nothing);
 }
 
-void test_list ()
+
+BOOST_AUTO_TEST_CASE(list)
 {
     monad::list<int> m_empty_i;
     monad::list<int> m_1_i{8};
     monad::list<int> m_3_i{3, 4, 5};
-
-    // equality
-
-    std::cout << m_empty_i << " == " << m_empty_i << " = "
-              << (m_empty_i == m_empty_i) << "\n";
-    std::cout << m_empty_i << " == " << m_3_i << " = "
-              << (m_empty_i == m_3_i) << "\n";
-    std::cout << m_1_i << " == " << m_3_i << " = "
-              << (m_1_i == m_3_i) << "\n";
-    std::cout << m_empty_i << " != " << m_empty_i << " = "
-              << (m_empty_i != m_empty_i) << "\n";
-    std::cout << m_empty_i << " != " << m_3_i << " = "
-              << (m_empty_i != m_3_i) << "\n";
-    std::cout << m_1_i << " != " << m_3_i << " = "
-              << (m_1_i != m_3_i) << "\n";
-
-    std::cout << "\n";
 
 
     // operator>>=
@@ -377,82 +407,64 @@ void test_list ()
         return monad::list<double>{x / 2.0, -x / 2.0};
     };
 
-    std::cout << m_empty_i << " >>= pos_and_neg = "
-              << (m_empty_i >>= pos_and_neg) << "\n";
-    std::cout << m_1_i << " >>= pos_and_neg = "
-              << (m_1_i >>= pos_and_neg) << "\n";
-    std::cout << m_3_i << " >>= pos_and_neg = "
-              << (m_3_i >>= pos_and_neg) << "\n";
-    std::cout << m_empty_i << " >>= half_pos_and_neg_double = "
-              << (m_empty_i >>= half_pos_and_neg_double) << "\n";
-    std::cout << m_1_i << " >>= half_pos_and_neg_double = "
-              << (m_1_i >>= half_pos_and_neg_double) << "\n";
-    std::cout << m_3_i << " >>= half_pos_and_neg_double = "
-              << (m_3_i >>= half_pos_and_neg_double) << "\n";
+    BOOST_CHECK_EQUAL((m_empty_i >>= pos_and_neg), monad::list<int>{});
+    BOOST_CHECK_EQUAL((m_1_i >>= pos_and_neg), (monad::list<int>{8, -8}));
+    BOOST_CHECK_EQUAL((m_3_i >>= pos_and_neg), (monad::list<int>{3, -3, 4, -4, 5, -5}));
 
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((m_empty_i >>= half_pos_and_neg_double),
+                       monad::list<double>{});
+    BOOST_CHECK_EQUAL((m_1_i >>= half_pos_and_neg_double),
+                      (monad::list<double>{4.0, -4.0}));
+    BOOST_CHECK_EQUAL((m_3_i >>= half_pos_and_neg_double),
+                      (monad::list<double>{1.5, -1.5, 2.0, -2.0, 2.5, -2.5}));
 
 
     // operator>>
-    std::cout << m_empty_i << " >> " << m_3_i << " = "
-              << (m_empty_i >> m_3_i) << "\n";
-    std::cout << m_3_i << " >> " << m_empty_i << " = "
-              << (m_3_i >> m_empty_i) << "\n";
-    std::cout << m_1_i << " >> " << m_3_i << " = "
-              << (m_1_i >> m_3_i) << "\n";
 
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((m_empty_i >> m_1_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_empty_i >> m_3_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_1_i >> m_empty_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_1_i >> m_3_i), m_3_i);
+    BOOST_CHECK_EQUAL((m_1_i >> m_empty_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_3_i >> m_1_i), (monad::list<int>{8, 8, 8}));
 
 
     // fmap
 
-    std::cout << "fmap(pos_and_neg, " << m_empty_i << ") = "
-              << fmap(pos_and_neg, m_empty_i) << "\n";
-    std::cout << "fmap(pos_and_neg, " << m_1_i << ") = "
-              << fmap(pos_and_neg, m_1_i) << "\n";
-    std::cout << "fmap(pos_and_neg, " << m_3_i << ") = "
-              << fmap(pos_and_neg, m_3_i) << "\n";
-    std::cout << "fmap(half_pos_and_neg_double, " << m_empty_i << ") = "
-              << fmap(half_pos_and_neg_double, m_empty_i) << "\n";
-    std::cout << "fmap(half_pos_and_neg_double, " << m_1_i << ") = "
-              << fmap(half_pos_and_neg_double, m_1_i) << "\n";
-    std::cout << "fmap(half_pos_and_neg_double, " << m_3_i << ") = "
-              << fmap(half_pos_and_neg_double, m_3_i) << "\n";
+    using nested_list_int = monad::list<monad::list<int>>;
+    using nested_list_double = monad::list<monad::list<double>>;
 
-    std::cout << "\n";
+    BOOST_CHECK_EQUAL((fmap(pos_and_neg, m_empty_i)),
+                      nested_list_int{});
+    BOOST_CHECK_EQUAL((fmap(pos_and_neg, m_1_i)),
+                      (nested_list_int{{8, -8}}));
+    BOOST_CHECK_EQUAL((fmap(pos_and_neg, m_3_i)),
+                      (nested_list_int{{3, -3}, {4, -4}, {5, -5}}));
+
+    BOOST_CHECK_EQUAL((fmap(half_pos_and_neg_double, m_empty_i)),
+                       nested_list_double{});
+    BOOST_CHECK_EQUAL((fmap(half_pos_and_neg_double, m_1_i)),
+                      (nested_list_double{{4.0, -4.0}}));
+    BOOST_CHECK_EQUAL((fmap(half_pos_and_neg_double, m_3_i)),
+                      (nested_list_double{{1.5, -1.5}, {2, -2}, {2.5, -2.5}}));
 
 
     // join
 
-    monad::list<monad::list<int>> outer_empty = {};
-    monad::list<monad::list<int>> inner_empty = {{}};
-    monad::list<monad::list<int>> nested_1 = {{}, {}};
-    monad::list<monad::list<int>> nested_2 = {{1}, {2}};
-    monad::list<monad::list<int>> nested_3 = {{1, 2}};
-    monad::list<monad::list<int>> nested_4 = {{1, 2}, {3}, {}};
+    nested_list_int outer_empty = {};
+    nested_list_int inner_empty = {{}};
+    nested_list_int nested_1 = {{}, {}};
+    nested_list_int nested_2 = {{1}, {2}};
+    nested_list_int nested_3 = {{1, 2}};
+    nested_list_int nested_4 = {{1, 2}, {3}, {}};
 
-    std::cout << "join(outer_empty=" << outer_empty << ") = "
-              << join(outer_empty) << "\n";
-    std::cout << "join(inner_empty=" << inner_empty << ") = "
-              << join(inner_empty) << "\n";
-    std::cout << "join(nested_1=" << nested_1 << ") = "
-              << join(nested_1) << "\n";
-    std::cout << "join(nested_2=" << nested_2 << ") = "
-              << join(nested_2) << "\n";
-    std::cout << "join(nested_3=" << nested_3 << ") = "
-              << join(nested_3) << "\n";
-    std::cout << "join(nested_4=" << nested_4 << ") = "
-              << join(nested_4) << "\n";
+    BOOST_CHECK_EQUAL(join(outer_empty), m_empty_i);
+    BOOST_CHECK_EQUAL(join(inner_empty), m_empty_i);
+    BOOST_CHECK_EQUAL(join(nested_1), m_empty_i);
+    BOOST_CHECK_EQUAL(join(nested_2), (monad::list<int>{1, 2}));
+    BOOST_CHECK_EQUAL(join(nested_3), (monad::list<int>{1, 2}));
+    BOOST_CHECK_EQUAL(join(nested_4), (monad::list<int>{1, 2, 3}));
 
-    std::cout << "\n\n";
-}
 
-int main ()
-{
-    test_maybe();
-    test_list();
-
-    std::cout << "ok.";
-
-    return 0;
+    // TODO: Other tests go here.
 }

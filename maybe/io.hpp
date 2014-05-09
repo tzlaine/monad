@@ -18,6 +18,9 @@ namespace monad {
         return os;
     }
 
+    inline std::ostream& operator<< (std::ostream& os, nothing_t)
+    { return os << "Nothing"; }
+
 }
 
 #endif

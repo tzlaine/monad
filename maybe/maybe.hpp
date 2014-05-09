@@ -31,12 +31,12 @@ namespace monad {
 
         monad () :
             value_ {},
-            state_ {}
+            state_ {false}
         {}
 
         monad (value_type value, state_type state) :
             value_ {value},
-            state_ {state}
+            state_ (state)
         {}
 
         monad (T t) :
@@ -91,6 +91,30 @@ namespace monad {
 
     template <typename T>
     using maybe = monad<T, detail::maybe_state>;
+
+    template <typename T>
+    bool operator== (maybe<T> lhs, maybe<T> rhs)
+    {
+        return
+            lhs.state() == rhs.state() &&
+            (!lhs.state().nonempty_ || lhs.value() == rhs.value());
+    }
+
+    template <typename T>
+    bool operator== (maybe<T> lhs, nothing_t)
+    { return !lhs.state().nonempty_; }
+
+    template <typename T>
+    bool operator== (nothing_t n, maybe<T> m)
+    { return m == n; }
+
+    template <typename T>
+    bool operator!= (maybe<T> m, nothing_t n)
+    { return !(m == n); }
+
+    template <typename T>
+    bool operator!= (nothing_t n, maybe<T> m)
+    { return !(m == n); }
 
 }
 

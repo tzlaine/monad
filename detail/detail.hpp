@@ -106,7 +106,7 @@ namespace monad { namespace detail {
     {
         using type = typename std::result_of<
             Fn(typename Iter1::value_type, typename Iter2::value_type)
-        >::type;
+        >::type::value_type;
     };
 
     template <typename Fn, typename Iter1, typename Iter2>
