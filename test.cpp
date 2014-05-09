@@ -63,16 +63,12 @@ void test_maybe()
 
     std::cout << m_nothing_i << " + " << m_3_i << " = "
               << (m_nothing_i + m_3_i) << "\n";
-
     std::cout << m_3_i << " + " << m_nothing_i << " = "
               << (m_3_i + m_nothing_i) << "\n";
-
     std::cout << m_0_i << " + " << m_3_i << " = "
               << (m_0_i + m_3_i) << "\n";
-
     std::cout << m_0_i << " + " << m_3_i << " + " << m_0_i << " = "
               << (m_0_i + m_3_i + m_0_i) << "\n";
-
     std::cout << m_0_i << " + " << m_3_i << " + " << m_nothing_i << " = "
               << (m_0_i + m_3_i + m_nothing_i) << "\n";
 
@@ -82,34 +78,29 @@ void test_maybe()
     // operator>>
     std::cout << m_nothing_i << " >> " << m_3_i << " = "
               << (m_nothing_i >> m_3_i) << "\n";
-
     std::cout << m_3_i << " >> " << m_nothing_i << " = "
               << (m_3_i >> m_nothing_i) << "\n";
-
     std::cout << m_0_i << " >> " << m_3_i << " = "
               << (m_0_i >> m_3_i) << "\n";
 
     std::cout << "\n";
 
 
-    // unary fmap
+    // fmap
 
     std::cout << "fmap(add_2<int>, " << m_nothing_i << ") = "
               << fmap(add_2<int>, m_nothing_i) << "\n";
-
     std::cout << "fmap(add_2<int>, " << m_3_i << ") = "
               << fmap(add_2<int>, m_3_i) << "\n";
-
     std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_3_i << ")) = "
               << fmap(add_2<int>, fmap(add_2<int>, m_3_i)) << "\n";
-
     std::cout << "fmap(add_2<int>, fmap(add_2<int>, " << m_nothing_i << ")) = "
               << fmap(add_2<int>, fmap(add_2<int>, m_nothing_i)) << "\n";
 
     std::cout << "\n";
 
 
-    // unary join
+    // join
 
     monad::maybe<monad::maybe<int>> inner_bad = {{monad::nothing}};
     monad::maybe<monad::maybe<int>> outer_bad = {monad::nothing};
@@ -129,13 +120,10 @@ void test_maybe()
 
     std::cout << "lift(add_2<int>, " << m_nothing_i << ") = "
               << lift(add_2<int>, m_nothing_i) << "\n";
-
     std::cout << "lift(add_2<int>, " << m_3_i << ") = "
               << lift(add_2<int>, m_3_i) << "\n";
-
     std::cout << "lift(add_2<int>, lift(add_2<int>, " << m_3_i << ")) = "
               << lift(add_2<int>, lift(add_2<int>, m_3_i)) << "\n";
-
     std::cout << "lift(add_2<int>, lift(add_2<int>, " << m_nothing_i << ")) = "
               << lift(add_2<int>, lift(add_2<int>, m_nothing_i)) << "\n";
 
@@ -144,10 +132,8 @@ void test_maybe()
 
     std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_3_i) << "\n";
-
     std::cout << "lift_n(add<int>, " << m_nothing_i << ", " << m_3_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_nothing_i, m_3_i) << "\n";
-
     std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_nothing_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(std::plus<int>{}, m_3_i, m_nothing_i) << "\n";
 
@@ -158,10 +144,8 @@ void test_maybe()
 
     std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_3_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_3_i) << "\n";
-
     std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_nothing_i << ", " << m_3_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_nothing_i, m_3_i) << "\n";
-
     std::cout << "lift_n(add<int>, " << m_3_i << ", " << m_3_i << ", " << m_nothing_i << ")) = "
               << monad::lift_n<monad::maybe<int>>(add3<int>, m_3_i, m_3_i, m_nothing_i) << "\n";
 
@@ -377,17 +361,15 @@ void test_list ()
     // operator>>
     std::cout << m_empty_i << " >> " << m_3_i << " = "
               << (m_empty_i >> m_3_i) << "\n";
-
     std::cout << m_3_i << " >> " << m_empty_i << " = "
               << (m_3_i >> m_empty_i) << "\n";
-
     std::cout << m_1_i << " >> " << m_3_i << " = "
               << (m_1_i >> m_3_i) << "\n";
 
     std::cout << "\n";
 
 
-    // unary fmap
+    // fmap
 
     std::cout << "fmap(pos_and_neg, " << m_empty_i << ") = "
               << fmap(pos_and_neg, m_empty_i) << "\n";
@@ -405,7 +387,7 @@ void test_list ()
     std::cout << "\n";
 
 
-    // unary join
+    // join
 
     monad::list<monad::list<int>> outer_empty = {};
     monad::list<monad::list<int>> inner_empty = {{}};
