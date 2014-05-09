@@ -12,6 +12,9 @@ namespace monad {
 
         struct list_state {};
 
+        bool operator== (list_state lhs, list_state rhs)
+        { return true; }
+
     }
 
     template <typename T>

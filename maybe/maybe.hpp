@@ -13,6 +13,9 @@ namespace monad {
             bool nonempty_;
         };
 
+        bool operator== (maybe_state lhs, maybe_state rhs)
+        { return lhs.nonempty_ == rhs.nonempty_; }
+
     }
 
     struct nothing_t {};

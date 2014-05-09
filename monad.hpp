@@ -65,7 +65,7 @@ namespace monad {
     // operator==().
     template <typename T, typename State>
     bool operator== (monad<T, State> lhs, monad<T, State> rhs)
-    { return lhs.data() == rhs.data() && lhs.state() == rhs.state(); }
+    { return lhs.value() == rhs.value() && lhs.state() == rhs.state(); }
 
     // operator!=().
     template <typename T, typename State>

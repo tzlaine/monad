@@ -59,6 +59,24 @@ void test_maybe()
     monad::maybe<int> m_3_i(3);
 
 
+    // equality
+
+    std::cout << m_nothing_i << " == " << m_nothing_i << " = "
+              << (m_nothing_i == m_nothing_i) << "\n";
+    std::cout << m_nothing_i << " == " << m_3_i << " = "
+              << (m_nothing_i == m_3_i) << "\n";
+    std::cout << m_0_i << " == " << m_3_i << " = "
+              << (m_0_i == m_3_i) << "\n";
+    std::cout << m_nothing_i << " != " << m_nothing_i << " = "
+              << (m_nothing_i != m_nothing_i) << "\n";
+    std::cout << m_nothing_i << " != " << m_3_i << " = "
+              << (m_nothing_i != m_3_i) << "\n";
+    std::cout << m_0_i << " != " << m_3_i << " = "
+              << (m_0_i != m_3_i) << "\n";
+
+    std::cout << "\n";
+
+
     // operator>>=
 
     std::cout << m_nothing_i << " + " << m_3_i << " = "
@@ -332,15 +350,32 @@ void test_list ()
     monad::list<int> m_1_i{8};
     monad::list<int> m_3_i{3, 4, 5};
 
+    // equality
+
+    std::cout << m_empty_i << " == " << m_empty_i << " = "
+              << (m_empty_i == m_empty_i) << "\n";
+    std::cout << m_empty_i << " == " << m_3_i << " = "
+              << (m_empty_i == m_3_i) << "\n";
+    std::cout << m_1_i << " == " << m_3_i << " = "
+              << (m_1_i == m_3_i) << "\n";
+    std::cout << m_empty_i << " != " << m_empty_i << " = "
+              << (m_empty_i != m_empty_i) << "\n";
+    std::cout << m_empty_i << " != " << m_3_i << " = "
+              << (m_empty_i != m_3_i) << "\n";
+    std::cout << m_1_i << " != " << m_3_i << " = "
+              << (m_1_i != m_3_i) << "\n";
+
+    std::cout << "\n";
+
+
+    // operator>>=
+
     auto pos_and_neg = [](int x) {
         return monad::list<int>{x, -x};
     };
     auto half_pos_and_neg_double = [](int x) {
         return monad::list<double>{x / 2.0, -x / 2.0};
     };
-
-
-    // operator>>=
 
     std::cout << m_empty_i << " >>= pos_and_neg = "
               << (m_empty_i >>= pos_and_neg) << "\n";
