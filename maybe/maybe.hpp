@@ -72,8 +72,7 @@ namespace monad {
             };
         }
 
-        template <typename State_>
-        join_result_t<this_type, State_> join() const
+        value_type join() const
         { return !state_.nonempty_ ? value_type{nothing} : value_; }
 
         value_type & mutable_value ()

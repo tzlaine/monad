@@ -344,6 +344,90 @@ void test_maybe()
 
 void test_list ()
 {
+    monad::list<int> m_empty_i;
+    monad::list<int> m_1_i{8};
+    monad::list<int> m_3_i{3, 4, 5};
+
+    auto pos_and_neg = [](int x) {
+        return monad::list<int>{x, -x};
+    };
+    auto half_pos_and_neg_double = [](int x) {
+        return monad::list<double>{x / 2.0, -x / 2.0};
+    };
+
+
+    // operator>>=
+
+    std::cout << m_empty_i << " >>= pos_and_neg = "
+              << (m_empty_i >>= pos_and_neg) << "\n";
+    std::cout << m_1_i << " >>= pos_and_neg = "
+              << (m_1_i >>= pos_and_neg) << "\n";
+    std::cout << m_3_i << " >>= pos_and_neg = "
+              << (m_3_i >>= pos_and_neg) << "\n";
+    std::cout << m_empty_i << " >>= half_pos_and_neg_double = "
+              << (m_empty_i >>= half_pos_and_neg_double) << "\n";
+    std::cout << m_1_i << " >>= half_pos_and_neg_double = "
+              << (m_1_i >>= half_pos_and_neg_double) << "\n";
+    std::cout << m_3_i << " >>= half_pos_and_neg_double = "
+              << (m_3_i >>= half_pos_and_neg_double) << "\n";
+
+    std::cout << "\n";
+
+
+    // operator>>
+    std::cout << m_empty_i << " >> " << m_3_i << " = "
+              << (m_empty_i >> m_3_i) << "\n";
+
+    std::cout << m_3_i << " >> " << m_empty_i << " = "
+              << (m_3_i >> m_empty_i) << "\n";
+
+    std::cout << m_1_i << " >> " << m_3_i << " = "
+              << (m_1_i >> m_3_i) << "\n";
+
+    std::cout << "\n";
+
+
+    // unary fmap
+
+    std::cout << "fmap(pos_and_neg, " << m_empty_i << ") = "
+              << fmap(pos_and_neg, m_empty_i) << "\n";
+    std::cout << "fmap(pos_and_neg, " << m_1_i << ") = "
+              << fmap(pos_and_neg, m_1_i) << "\n";
+    std::cout << "fmap(pos_and_neg, " << m_3_i << ") = "
+              << fmap(pos_and_neg, m_3_i) << "\n";
+    std::cout << "fmap(half_pos_and_neg_double, " << m_empty_i << ") = "
+              << fmap(half_pos_and_neg_double, m_empty_i) << "\n";
+    std::cout << "fmap(half_pos_and_neg_double, " << m_1_i << ") = "
+              << fmap(half_pos_and_neg_double, m_1_i) << "\n";
+    std::cout << "fmap(half_pos_and_neg_double, " << m_3_i << ") = "
+              << fmap(half_pos_and_neg_double, m_3_i) << "\n";
+
+    std::cout << "\n";
+
+
+    // unary join
+
+    monad::list<monad::list<int>> outer_empty = {};
+    monad::list<monad::list<int>> inner_empty = {{}};
+    monad::list<monad::list<int>> nested_1 = {{}, {}};
+    monad::list<monad::list<int>> nested_2 = {{1}, {2}};
+    monad::list<monad::list<int>> nested_3 = {{1, 2}};
+    monad::list<monad::list<int>> nested_4 = {{1, 2}, {3}, {}};
+
+    std::cout << "join(outer_empty=" << outer_empty << ") = "
+              << join(outer_empty) << "\n";
+    std::cout << "join(inner_empty=" << inner_empty << ") = "
+              << join(inner_empty) << "\n";
+    std::cout << "join(nested_1=" << nested_1 << ") = "
+              << join(nested_1) << "\n";
+    std::cout << "join(nested_2=" << nested_2 << ") = "
+              << join(nested_2) << "\n";
+    std::cout << "join(nested_3=" << nested_3 << ") = "
+              << join(nested_3) << "\n";
+    std::cout << "join(nested_4=" << nested_4 << ") = "
+              << join(nested_4) << "\n";
+
+    std::cout << "\n\n";
 }
 
 int main ()

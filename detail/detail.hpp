@@ -23,21 +23,6 @@ namespace monad { namespace detail {
     template <typename Monad>
     using state_type_t = typename state_type<Monad>::type;
 
-    template <typename Monad, typename State>
-    struct join_type :
-        std::enable_if<
-            std::is_same<
-                detail::state_type_t<typename Monad::value_type>,
-                State
-            >::value &&
-            std::is_same<
-                typename Monad::state_type,
-                State
-            >::value,
-            typename Monad::value_type
-        >
-    {};
-
     template <std::size_t N,
               typename ReturnMonad,
               typename Fn,

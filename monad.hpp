@@ -8,9 +8,6 @@
 
 namespace monad {
 
-    template <typename Monad, typename State>
-    using join_result_t = typename detail::join_type<Monad, State>::type;
-
     template <typename T, typename State>
     class monad
     {
@@ -29,7 +26,7 @@ namespace monad {
             state_ (state)
         {}
 
-        value_type value () const
+        value_type  value () const
         { return value_; }
 
         state_type state () const
@@ -51,8 +48,8 @@ namespace monad {
             };
         }
 
-        template <typename State_>
-        join_result_t<this_type, State_> join () const;
+        using undefined = void;
+        undefined join () const;
 
         value_type & mutable_value ()
         { return value_; }
@@ -104,8 +101,8 @@ namespace monad {
     // join().
     // join :: (Monad m) => m (m a) -> m a
     template <typename T, typename State>
-    auto join (monad<T, State> m) -> decltype(m.template join<State>())
-    { return m.template join<State>(); }
+    auto join (monad<T, State> m) -> decltype(m.join())
+    { return m.join(); }
 
     /** TODO @c Fn must accept a single parameter to which @c T is
         convertible.  @c Fn must return a value that is or is convertible to

@@ -22,6 +22,11 @@ namespace monad {
         using value_type = std::vector<T>;
         using state_type = detail::list_state;
 
+    private:
+        value_type value_;
+        state_type state_;
+
+    public:
         monad () :
             value_ {},
             state_ {}
@@ -39,6 +44,10 @@ namespace monad {
             value_ {v}
         {}
 
+        monad (std::initializer_list<T> l) :
+            value_ {l}
+        {}
+
         monad (const monad& rhs) = default;
         monad& operator= (const monad& rhs) = default;
 
@@ -50,7 +59,7 @@ namespace monad {
 
         /** TODO Fn must return a list monad. */
         template <typename Fn>
-        auto bind (Fn f) const -> decltype(f(this->value_[0]))
+        auto bind (Fn f) const -> decltype(f(value_[0]))
         {
             using result_type = decltype(f(value_[0]));
             result_type retval;
@@ -61,16 +70,18 @@ namespace monad {
                 [f, &retval](T x) {
                     result_type f_x = f(x);
                     retval.mutable_value().insert(
-                        f_x.value().begin(),
-                        f_x.value().end()
+                        retval.mutable_value().end(),
+                        f_x.mutable_value().begin(),
+                        f_x.mutable_value().end()
                     );
                 }
             );
+            return retval;
         }
 
         template <typename Fn>
         auto fmap (Fn f) const ->
-            monad<decltype(f(this->value_[0])), state_type>
+            monad<decltype(f(value_[0])), state_type>
         {
             monad<decltype(f(value_[0])), state_type> retval;
             retval.mutable_value().reserve(value_.size());
@@ -79,21 +90,21 @@ namespace monad {
                 value_.end(),
                 [f, &retval](T x) {retval.mutable_value().push_back(f(x));}
             );
+            return retval;
         }
 
-        template <typename State_>
-        join_result_t<this_type, State_> join() const
-        { return value_; }
+        typename value_type::value_type join() const
+        {
+            return *this >>= [](T x) {
+                return x;
+            };
+        }
 
         value_type & mutable_value ()
         { return value_; }
 
         state_type & mutable_state ()
         { return state_; }
-
-    private:
-        value_type value_;
-        state_type state_;
     };
 
     template <typename T>
