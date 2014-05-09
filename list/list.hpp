@@ -62,9 +62,11 @@ namespace monad {
 
         /** TODO Fn must return a list monad. */
         template <typename Fn>
-        auto bind (Fn f) const -> decltype(f(value_[0]))
+        auto bind (Fn f) const ->
+            typename std::remove_cv<decltype(f(value_[0]))>::type
         {
-            using result_type = decltype(f(value_[0]));
+            using result_type =
+                typename std::remove_cv<decltype(f(value_[0]))>::type;
             result_type retval;
             retval.mutable_value().reserve(value_.size());
             std::for_each(
@@ -84,9 +86,15 @@ namespace monad {
 
         template <typename Fn>
         auto fmap (Fn f) const ->
-            monad<decltype(f(value_[0])), state_type>
+            monad<
+                typename std::remove_cv<decltype(f(value_[0]))>::type,
+                state_type
+            >
         {
-            monad<decltype(f(value_[0])), state_type> retval;
+            monad<
+                typename std::remove_cv<decltype(f(value_[0]))>::type,
+                state_type
+            > retval;
             retval.mutable_value().reserve(value_.size());
             std::for_each(
                 value_.begin(),

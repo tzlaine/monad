@@ -3,7 +3,7 @@
 
 #include <maybe/maybe.hpp>
 
-#include <iosfwd>
+#include <iostream>
 
 
 namespace monad {

@@ -5,7 +5,7 @@
 namespace monad {
 
     template <typename T, typename State>
-    struct monad;
+    class monad;
 
 }
 

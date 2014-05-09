@@ -178,7 +178,7 @@ namespace monad {
     auto map (Fn f, Iter first, Iter last) ->
         monad<OutSeq, detail::state_type_t<decltype(f(*first))>>
     {
-        using monad_type = decltype(f(*first));
+        using monad_type = typename std::remove_cv<decltype(f(*first))>::type;
         using state_type = detail::state_type_t<monad_type>;
         return detail::sequence_impl<Iter, monad_type, OutSeq, state_type>(
             [f](Iter it) {return f(*it);},
@@ -211,7 +211,7 @@ namespace monad {
             detail::state_type_t<decltype(f(*first))>
         >
     {
-        using monad_type = decltype(f(*first));
+        using monad_type = typename std::remove_cv<decltype(f(*first))>::type;
         using state_type = detail::state_type_t<monad_type>;
 
         monad<std::pair<FirstOutSeq, SecondOutSeq>, state_type> retval;
@@ -257,7 +257,7 @@ namespace monad {
     auto filter (Fn f, Iter first, Iter last) ->
         monad<OutSeq, detail::state_type_t<decltype(f(*first))>>
     {
-        using monad_type = decltype(f(*first));
+        using monad_type = typename std::remove_cv<decltype(f(*first))>::type;
         using state_type = detail::state_type_t<monad_type>;
 
         monad<OutSeq, state_type> retval;
@@ -313,7 +313,8 @@ namespace monad {
     auto zip (Fn f, Iter1 first1, Iter1 last1, Iter2 first2) ->
         monad<OutSeq, detail::state_type_t<decltype(f(*first1, *first2))>>
     {
-        using monad_type = decltype(f(*first1, *first2));
+        using monad_type =
+            typename std::remove_cv<decltype(f(*first1, *first2))>::type;
         using state_type = detail::state_type_t<monad_type>;
         using zip_iter = detail::zip_iterator<Iter1, Iter2>;
         zip_iter first{first1, first2};
@@ -335,9 +336,10 @@ namespace monad {
     // foldM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m a
     template <typename Fn, typename T, typename Iter>
     auto fold (Fn f, T initial_value, Iter first, Iter last) ->
-        decltype(f(initial_value, *first))
+        typename std::remove_cv<decltype(f(initial_value, *first))>::type
     {
-        using monad_type = decltype(f(initial_value, *first));
+        using monad_type =
+            typename std::remove_cv<decltype(f(initial_value, *first))>::type;
         using value_type = typename monad_type::value_type;
 
         if (first == last)
