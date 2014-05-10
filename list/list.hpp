@@ -22,11 +22,12 @@ namespace monad {
     {
     public:
         using this_type = monad<T, detail::list_state>;
-        using value_type = std::vector<T>;
+        using value_type = T;
         using state_type = detail::list_state;
+        using storage_type = std::vector<value_type>;
 
     private:
-        value_type value_;
+        storage_type value_;
         state_type state_;
 
     public:
@@ -35,26 +36,26 @@ namespace monad {
             state_ {}
         {}
 
-        monad (value_type value, state_type) :
+        monad (storage_type value, state_type) :
             value_ {value}
         {}
 
-        monad (T t) :
+        monad (value_type t) :
             value_ {1, t}
         {}
 
-        monad (std::vector<T> v) :
+        monad (storage_type v) :
             value_ {v}
         {}
 
-        monad (std::initializer_list<T> l) :
+        monad (std::initializer_list<value_type> l) :
             value_ {l}
         {}
 
         monad (const monad& rhs) = default;
         monad& operator= (const monad& rhs) = default;
 
-        value_type value () const
+        storage_type value () const
         { return value_; }
 
         state_type state () const
@@ -72,7 +73,7 @@ namespace monad {
             std::for_each(
                 value_.begin(),
                 value_.end(),
-                [f, &retval](T x) {
+                [f, &retval](value_type x) {
                     result_type f_x = f(x);
                     retval.mutable_value().insert(
                         retval.mutable_value().end(),
@@ -99,19 +100,21 @@ namespace monad {
             std::for_each(
                 value_.begin(),
                 value_.end(),
-                [f, &retval](T x) {retval.mutable_value().push_back(f(x));}
+                [f, &retval](value_type x) {
+                    retval.mutable_value().push_back(f(x));
+                }
             );
             return retval;
         }
 
-        typename value_type::value_type join() const
+        value_type join() const
         {
-            return *this >>= [](T x) {
+            return *this >>= [](value_type x) {
                 return x;
             };
         }
 
-        value_type & mutable_value ()
+        storage_type & mutable_value ()
         { return value_; }
 
         state_type & mutable_state ()

@@ -39,7 +39,7 @@ namespace monad {
             state_ (state)
         {}
 
-        monad (T t) :
+        monad (value_type t) :
             value_ {t},
             state_ {true}
         {}
@@ -70,7 +70,7 @@ namespace monad {
         template <typename Fn>
         this_type fmap (Fn f)
         {
-            return *this >>= [f](T x) {
+            return *this >>= [f](value_type x) {
                 return this_type{f(x)};
             };
         }
