@@ -29,6 +29,11 @@ namespace monad {
         using value_type = T;
         using state_type = detail::maybe_state;
 
+    private:
+        value_type value_;
+        state_type state_;
+
+    public:
         monad () :
             value_ {},
             state_ {false}
@@ -59,10 +64,13 @@ namespace monad {
         { return state_; }
 
         template <typename Fn>
-        this_type bind (Fn f) const
+        auto bind (Fn f) const ->
+            typename std::remove_cv<decltype(f(value_))>::type
         {
+            using result_type =
+                typename std::remove_cv<decltype(f(value_))>::type;
             if (!state_.nonempty_)
-                return *this;
+                return result_type{nothing};
             else
                 return f(value_);
         }
@@ -83,10 +91,6 @@ namespace monad {
 
         state_type & mutable_state ()
         { return state_; }
-
-    private:
-        value_type value_;
-        state_type state_;
     };
 
     template <typename T>

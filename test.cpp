@@ -146,6 +146,8 @@ BOOST_AUTO_TEST_CASE(maybe)
     monad::maybe<int> m_nothing_i = monad::nothing;
     monad::maybe<int> m_0_i = 0;
     monad::maybe<int> m_3_i = 3;
+    monad::maybe<double> m_0_d = 0.0;
+    monad::maybe<double> m_3_d = 3.0;
 
     auto plus = [](monad::maybe<int> lhs, monad::maybe<int> rhs) {
         using value_type = monad::maybe<int>::value_type;
@@ -156,12 +158,26 @@ BOOST_AUTO_TEST_CASE(maybe)
         };
     };
 
+    auto plus_double = [](monad::maybe<int> lhs, monad::maybe<int> rhs) {
+        using value_type = monad::maybe<int>::value_type;
+        return lhs >>= [rhs](value_type x) {
+            return rhs >>= [x](value_type y) {
+                return monad::maybe<double>{1.0 * x + y};
+            };
+        };
+    };
+
     // operator>>=
 
     BOOST_CHECK_EQUAL(plus(m_nothing_i, m_3_i), monad::nothing);
     BOOST_CHECK_EQUAL(plus(m_3_i, m_nothing_i), monad::nothing);
     BOOST_CHECK_EQUAL(plus(m_0_i, m_3_i), m_3_i);
     BOOST_CHECK_EQUAL(plus(m_3_i, m_0_i), m_3_i);
+
+    BOOST_CHECK_EQUAL(plus_double(m_nothing_i, m_3_i), monad::nothing);
+    BOOST_CHECK_EQUAL(plus_double(m_3_i, m_nothing_i), monad::nothing);
+    BOOST_CHECK_EQUAL(plus_double(m_0_i, m_3_i), m_3_d);
+    BOOST_CHECK_EQUAL(plus_double(m_3_i, m_0_i), m_3_d);
 
 
     // operator>>
