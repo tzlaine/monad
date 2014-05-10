@@ -86,14 +86,12 @@ namespace monad {
     auto operator<<= (Fn f, monad<T, State> m) -> decltype(m.bind(f))
     { return m.bind(f); }
 
-    // operator>>().  Though the Haskell version operates on two monadic
-    // values, limitations of the C++ type system require the operands to be
-    // the same.
+    // operator>>().
     // (>>) :: m a -> m b -> m b
-    template <typename T, typename State>
-    monad<T, State> operator>> (monad<T, State> lhs, monad<T, State> rhs)
+    template <typename T1, typename State1, typename T2, typename State2>
+    monad<T2, State2> operator>> (monad<T1, State1> lhs, monad<T2, State2> rhs)
     {
-        return lhs.bind([rhs](T) {
+        return lhs.bind([rhs](T1) {
             return rhs;
         });
     }

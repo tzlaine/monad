@@ -146,6 +146,7 @@ BOOST_AUTO_TEST_CASE(maybe)
     monad::maybe<int> m_nothing_i = monad::nothing;
     monad::maybe<int> m_0_i = 0;
     monad::maybe<int> m_3_i = 3;
+    monad::maybe<double> m_nothing_d = monad::nothing;
     monad::maybe<double> m_0_d = 0.0;
     monad::maybe<double> m_3_d = 3.0;
 
@@ -186,6 +187,15 @@ BOOST_AUTO_TEST_CASE(maybe)
     BOOST_CHECK_EQUAL(m_3_i >> m_nothing_i, monad::nothing);
     BOOST_CHECK_EQUAL(m_3_i >> m_0_i, m_0_i);
     BOOST_CHECK_EQUAL(m_0_i >> m_3_i, m_3_i);
+
+    BOOST_CHECK_EQUAL(m_nothing_i >> m_3_d, m_nothing_d);
+    BOOST_CHECK_EQUAL(m_nothing_d >> m_3_i, m_nothing_i);
+    BOOST_CHECK_EQUAL(m_3_i >> m_nothing_d, m_nothing_d);
+    BOOST_CHECK_EQUAL(m_3_d >> m_nothing_i, m_nothing_i);
+    BOOST_CHECK_EQUAL(m_3_i >> m_0_d, m_0_d);
+    BOOST_CHECK_EQUAL(m_3_d >> m_0_i, m_0_i);
+    BOOST_CHECK_EQUAL(m_0_i >> m_3_d, m_3_d);
+    BOOST_CHECK_EQUAL(m_0_d >> m_3_i, m_3_i);
 
 
     // fmap
@@ -425,6 +435,9 @@ BOOST_AUTO_TEST_CASE(list)
     monad::list<int> m_empty_i;
     monad::list<int> m_1_i{8};
     monad::list<int> m_3_i{3, 4, 5};
+    monad::list<double> m_empty_d;
+    monad::list<double> m_1_d{8.0};
+    monad::list<double> m_3_d{3.0, 4.0, 5.0};
 
     // operator>>=
 
@@ -455,6 +468,19 @@ BOOST_AUTO_TEST_CASE(list)
     BOOST_CHECK_EQUAL((m_1_i >> m_3_i), m_3_i);
     BOOST_CHECK_EQUAL((m_1_i >> m_empty_i), m_empty_i);
     BOOST_CHECK_EQUAL((m_3_i >> m_1_i), (monad::list<int>{8, 8, 8}));
+
+    BOOST_CHECK_EQUAL((m_empty_i >> m_1_d), m_empty_d);
+    BOOST_CHECK_EQUAL((m_empty_d >> m_1_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_empty_i >> m_3_d), m_empty_d);
+    BOOST_CHECK_EQUAL((m_empty_d >> m_3_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_1_i >> m_empty_d), m_empty_d);
+    BOOST_CHECK_EQUAL((m_1_d >> m_empty_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_1_i >> m_3_d), m_3_d);
+    BOOST_CHECK_EQUAL((m_1_d >> m_3_i), m_3_i);
+    BOOST_CHECK_EQUAL((m_1_i >> m_empty_d), m_empty_d);
+    BOOST_CHECK_EQUAL((m_1_d >> m_empty_i), m_empty_i);
+    BOOST_CHECK_EQUAL((m_3_i >> m_1_d), (monad::list<double>{8.0, 8.0, 8.0}));
+    BOOST_CHECK_EQUAL((m_3_d >> m_1_i), (monad::list<int>{8, 8, 8}));
 
 
     // fmap
