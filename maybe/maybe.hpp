@@ -78,9 +78,9 @@ namespace monad {
         template <typename Fn>
         this_type fmap (Fn f)
         {
-            return *this >>= [f](value_type x) {
+            return bind([f](value_type x) {
                 return this_type{f(x)};
-            };
+            });
         }
 
         value_type join() const

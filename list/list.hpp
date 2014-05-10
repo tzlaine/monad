@@ -8,15 +8,6 @@
 
 namespace monad {
 
-    namespace detail {
-
-        struct list_state {};
-
-        bool operator== (list_state lhs, list_state rhs)
-        { return true; }
-
-    }
-
     template <typename T>
     class monad<T, detail::list_state>
     {
@@ -36,12 +27,16 @@ namespace monad {
             state_ {}
         {}
 
-        monad (storage_type value, state_type) :
-            value_ {value}
+        monad (storage_type v, state_type) :
+            value_ {v}
         {}
 
-        monad (value_type t) :
-            value_ {1, t}
+        monad (value_type v, state_type) :
+            value_ {v}
+        {}
+
+        monad (value_type v) :
+            value_ {v}
         {}
 
         monad (storage_type v) :
@@ -120,9 +115,6 @@ namespace monad {
         state_type & mutable_state ()
         { return state_; }
     };
-
-    template <typename T>
-    using list = monad<T, detail::list_state>;
 
 }
 

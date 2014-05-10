@@ -55,36 +55,35 @@ namespace monad { namespace detail {
         );
     }
 
+    struct list_state {};
+
+    bool operator== (list_state lhs, list_state rhs)
+    { return true; }
+
     template <
         typename Iter,
         typename Monad,
-        typename OutSeq,
+        typename List,
         typename State,
         typename Fn
     >
-    monad<OutSeq, State> sequence_impl (Fn f, Iter first, Iter last)
+    monad<List, State> sequence_impl (Fn f, Iter first, Iter last)
     {
-        monad<OutSeq, State> retval;
-
         if (first == last)
-            return retval;
+            return monad<List, State>{};
 
-        detail::reserve(retval.mutable_value(), first, last);
-
-        Monad prev = f(first);
-        ++first;
-        retval.mutable_value().push_back(prev.value());
+        monad<List, State> retval{List{}};
 
         while (first != last) {
             Monad m = f(first);
             ++first;
-            retval.mutable_value().push_back(m.value());
-            prev = prev >>= [m](typename Monad::value_type) {
-                return m;
+            retval = m >>= [=](typename Monad::value_type x) {
+                return retval >>= [=](List list) {
+                    list.mutable_value().push_back(x);
+                    return monad<List, State>{list};
+                };
             };
         }
-
-        retval.mutable_state() = prev.state();
 
         return retval;
     }

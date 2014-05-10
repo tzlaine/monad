@@ -62,6 +62,9 @@ namespace monad {
         state_type state_;
     };
 
+    template <typename T>
+    using list = monad<T, detail::list_state>;
+
     // operator==().
     template <typename T, typename State>
     bool operator== (monad<T, State> lhs, monad<T, State> rhs)
@@ -145,15 +148,15 @@ namespace monad {
     // sequence :: Monad m => [m a] -> m [a]
     template <
         typename Iter,
-        typename OutSeq = std::vector<typename Iter::value_type::value_type>,
+        typename List = list<typename Iter::value_type::value_type>,
         typename State = typename Iter::value_type::state_type
     >
-    monad<OutSeq, State> sequence (Iter first, Iter last)
+    monad<List, State> sequence (Iter first, Iter last)
     {
         return detail::sequence_impl<
             Iter,
             typename Iter::value_type,
-            OutSeq,
+            List,
             State
         >([](Iter it) {return *it;}, first, last);
     }
