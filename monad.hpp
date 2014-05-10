@@ -199,47 +199,39 @@ namespace monad {
     template <
         typename Fn,
         typename Iter,
-        typename FirstOutSeq = std::vector<
+        typename FirstList = list<
             typename detail::mapped_value_type_t<Fn, Iter>::first_type
         >,
-        typename SecondOutSeq = std::vector<
+        typename SecondList = list<
             typename detail::mapped_value_type_t<Fn, Iter>::second_type
         >
     >
     auto map_unzip (Fn f, Iter first, Iter last) ->
         monad<
-            std::pair<FirstOutSeq, SecondOutSeq>,
+            std::pair<FirstList, SecondList>,
             detail::state_type_t<decltype(f(*first))>
         >
     {
         using monad_type = typename std::remove_cv<decltype(f(*first))>::type;
         using state_type = detail::state_type_t<monad_type>;
-
-        monad<std::pair<FirstOutSeq, SecondOutSeq>, state_type> retval;
+        using result_type = monad<std::pair<FirstList, SecondList>, state_type>;
 
         if (first == last)
-            return retval;
+            return result_type{};
 
-        detail::reserve(retval.mutable_value(), first, last);
-
-        monad_type prev = f(*first);
-        ++first;
-        retval.mutable_value().first.push_back(prev.value().first);
-        retval.mutable_value().second.push_back(prev.value().second);
-
-        while (first != last) {
-            monad_type m = f(*first);
-            ++first;
-            retval.mutable_value().first.push_back(m.value().first);
-            retval.mutable_value().second.push_back(m.value().second);
-            prev = prev >>= [m](typename monad_type::value_type) {
-                return m;
-            };
-        }
-
-        retval.mutable_state() = prev.state();
-
-        return retval;
+        auto mapped = map(f, first, last);
+        using mapped_type = decltype(mapped);
+        return mapped >>= [mapped](typename mapped_type::value_type mapped_list) {
+            std::size_t size = mapped_list.mutable_value().size();
+            std::pair<FirstList, SecondList> data;
+            data.first.mutable_value().reserve(size);
+            data.second.mutable_value().reserve(size);
+            for (auto x : mapped_list.value()) {
+                data.first.mutable_value().push_back(x.first);
+                data.second.mutable_value().push_back(x.second);
+            }
+            return result_type{data, mapped.state()};
+        };
     }
 
     template <typename Fn, typename Range>

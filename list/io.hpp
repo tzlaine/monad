@@ -19,6 +19,21 @@ namespace monad {
         return os;
     }
 
+    template <typename T, typename U>
+    std::ostream& operator<< (std::ostream& os, std::pair<list<T>, list<U>> m)
+    {
+        os << "([ ";
+        for (auto x : m.first.value()) {
+            os << x << ' ';
+        }
+        os << "], [";
+        for (auto x : m.second.value()) {
+            os << x << ' ';
+        }
+        os << "])";
+        return os;
+    }
+
 }
 
 #endif

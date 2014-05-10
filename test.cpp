@@ -101,30 +101,6 @@ template <typename T>
 T add_2 (T t)
 { return t + 2; }
 
-namespace monad {
-
-    template <typename T, typename U>
-    std::ostream& operator<< (std::ostream& os,
-                              maybe<std::pair<std::vector<T>, std::vector<U>>> m)
-    {
-        if (!m.state().nonempty_) {
-            os << "Nothing";
-        } else {
-            os << "Just ([ ";
-            for (auto x : m.value().first) {
-                os << x << ' ';
-            }
-            os << "], [ ";
-            for (auto x : m.value().second) {
-                os << x << ' ';
-            }
-            os << "])";
-        }
-        return os;
-    }
-
-}
-
 
 BOOST_AUTO_TEST_CASE(maybe)
 {
@@ -298,7 +274,6 @@ BOOST_AUTO_TEST_CASE(maybe)
     BOOST_CHECK_EQUAL((monad::map(map_even, set_240)), _240_sequence_double);
 
 
-#if 0
     // map_unzip
 
     auto map_unzip_nonzero = [](int x) {
@@ -316,7 +291,7 @@ BOOST_AUTO_TEST_CASE(maybe)
         return retval;
     };
 
-    using unzipped_pair = std::pair<std::vector<int>, std::vector<double>>;
+    using unzipped_pair = std::pair<monad::list<int>, monad::list<double>>;
     monad::maybe<unzipped_pair> _123_unzipped_sequence{unzipped_pair{{1, 2, 3}, {1.5, 2.5, 3.5}}};
     monad::maybe<unzipped_pair> _213_unzipped_sequence{unzipped_pair{{2, 1, 3}, {2.5, 1.5, 3.5}}};
     monad::maybe<unzipped_pair> _231_unzipped_sequence{unzipped_pair{{2, 3, 1}, {2.5, 3.5, 1.5}}};
@@ -341,7 +316,6 @@ BOOST_AUTO_TEST_CASE(maybe)
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_024)), _024_unzipped_sequence);
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_204)), _204_unzipped_sequence);
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_240)), _240_unzipped_sequence);
-#endif
 
 
     // fold
@@ -617,6 +591,51 @@ BOOST_AUTO_TEST_CASE(list)
     BOOST_CHECK_EQUAL((monad::map(map_even, set_024)), _024_sequence_double);
     BOOST_CHECK_EQUAL((monad::map(map_even, set_204)), _204_sequence_double);
     BOOST_CHECK_EQUAL((monad::map(map_even, set_240)), _240_sequence_double);
+
+
+    // map_unzip
+
+    auto map_unzip_nonzero = [](int x) {
+        monad::list<std::pair<int, double>> retval =
+            x ?
+            monad::list<std::pair<int, double>>{{x, x + 0.5}} :
+            monad::list<std::pair<int, double>>{};
+        return retval;
+    };
+    auto map_unzip_even = [](int x) {
+        monad::list<std::pair<int, double>> retval =
+            x % 2 == 0 ?
+            monad::list<std::pair<int, double>>{{x, x + 0.5}} :
+            monad::list<std::pair<int, double>>{};
+        return retval;
+    };
+
+    using unzipped_pair = std::pair<monad::list<int>, monad::list<double>>;
+    monad::list<unzipped_pair> empty_unzipped_sequence{};
+    monad::list<unzipped_pair> _123_unzipped_sequence{unzipped_pair{{1, 2, 3}, {1.5, 2.5, 3.5}}};
+    monad::list<unzipped_pair> _213_unzipped_sequence{unzipped_pair{{2, 1, 3}, {2.5, 1.5, 3.5}}};
+    monad::list<unzipped_pair> _231_unzipped_sequence{unzipped_pair{{2, 3, 1}, {2.5, 3.5, 1.5}}};
+    monad::list<unzipped_pair> _024_unzipped_sequence{unzipped_pair{{0, 2, 4}, {0.5, 2.5, 4.5}}};
+    monad::list<unzipped_pair> _204_unzipped_sequence{unzipped_pair{{2, 0, 4}, {2.5, 0.5, 4.5}}};
+    monad::list<unzipped_pair> _240_unzipped_sequence{unzipped_pair{{2, 4, 0}, {2.5, 4.5, 0.5}}};
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, empty_set)), empty_unzipped_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_123)), _123_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_213)), _213_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_231)), _231_unzipped_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_024)), empty_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_204)), empty_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_nonzero, set_240)), empty_unzipped_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_123)), empty_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_213)), empty_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_231)), empty_unzipped_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_024)), _024_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_204)), _204_unzipped_sequence);
+    BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_240)), _240_unzipped_sequence);
 
 
     // filter
