@@ -172,16 +172,16 @@ namespace monad {
     template <
         typename Fn,
         typename Iter,
-        typename OutSeq = std::vector<
+        typename List = list<
             detail::mapped_value_type_t<Fn, Iter>
         >
     >
     auto map (Fn f, Iter first, Iter last) ->
-        monad<OutSeq, detail::state_type_t<decltype(f(*first))>>
+        monad<List, detail::state_type_t<decltype(f(*first))>>
     {
         using monad_type = typename std::remove_cv<decltype(f(*first))>::type;
         using state_type = detail::state_type_t<monad_type>;
-        return detail::sequence_impl<Iter, monad_type, OutSeq, state_type>(
+        return detail::sequence_impl<Iter, monad_type, List, state_type>(
             [f](Iter it) {return f(*it);},
             first,
             last
@@ -253,20 +253,21 @@ namespace monad {
     template <
         typename Fn,
         typename Iter,
-        typename OutSeq = std::vector<typename Iter::value_type>
+        typename List = list<typename Iter::value_type>
     >
     auto filter (Fn f, Iter first, Iter last) ->
-        monad<OutSeq, detail::state_type_t<decltype(f(*first))>>
+        monad<List, detail::state_type_t<decltype(f(*first))>>
     {
         using monad_type = typename std::remove_cv<decltype(f(*first))>::type;
         using state_type = detail::state_type_t<monad_type>;
-
-        monad<OutSeq, state_type> retval;
+        using result_type = monad<List, state_type>;
 
         if (first == last)
-            return retval;
+            return result_type{};
 
-        detail::reserve(retval.mutable_value(), first, last);
+        List list;
+
+        detail::reserve(list.mutable_value(), first, last);
 
         auto prev_value = *first;
         monad_type prev = f(prev_value);
@@ -276,23 +277,21 @@ namespace monad {
             auto value = *first;
             monad_type m = f(value);
             ++first;
-            prev = prev >>= [m, prev_value, &retval](bool b) {
+            prev = prev >>= [m, prev_value, &list](bool b) {
                 if (b)
-                    retval.mutable_value().push_back(prev_value);
+                    list.mutable_value().push_back(prev_value);
                 return m;
             };
             prev_value = value;
         }
 
-        prev >>= [prev, prev_value, &retval](bool b) {
+        prev >>= [prev, prev_value, &list](bool b) {
             if (b)
-                retval.mutable_value().push_back(prev_value);
+                list.mutable_value().push_back(prev_value);
             return prev;
         };
 
-        retval.mutable_state() = prev.state();
-
-        return retval;
+        return result_type{list, prev.state()};
     }
 
     template <typename Fn, typename Range>
@@ -307,12 +306,12 @@ namespace monad {
         typename Fn,
         typename Iter1,
         typename Iter2,
-        typename OutSeq = std::vector<
+        typename List = list<
             detail::zip_value_type_t<Fn, Iter1, Iter2>
         >
     >
     auto zip (Fn f, Iter1 first1, Iter1 last1, Iter2 first2) ->
-        monad<OutSeq, detail::state_type_t<decltype(f(*first1, *first2))>>
+        monad<List, detail::state_type_t<decltype(f(*first1, *first2))>>
     {
         using monad_type =
             typename std::remove_cv<decltype(f(*first1, *first2))>::type;
@@ -320,7 +319,7 @@ namespace monad {
         using zip_iter = detail::zip_iterator<Iter1, Iter2>;
         zip_iter first{first1, first2};
         zip_iter last{last1, first2};
-        return detail::sequence_impl<zip_iter, monad_type, OutSeq, state_type>(
+        return detail::sequence_impl<zip_iter, monad_type, List, state_type>(
             [f](zip_iter it) {return f(*it.first, *it.second);},
             first,
             last

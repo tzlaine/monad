@@ -103,21 +103,6 @@ T add_2 (T t)
 
 namespace monad {
 
-    template <typename T>
-    std::ostream& operator<< (std::ostream& os, maybe<std::vector<T>> m)
-    {
-        if (!m.state().nonempty_) {
-            os << "Nothing";
-        } else {
-            os << "Just [ ";
-            for (auto x : m.value()) {
-                os << x << ' ';
-            }
-            os << ']';
-        }
-        return os;
-    }
-
     template <typename T, typename U>
     std::ostream& operator<< (std::ostream& os,
                               maybe<std::pair<std::vector<T>, std::vector<U>>> m)
@@ -264,7 +249,7 @@ BOOST_AUTO_TEST_CASE(maybe)
     BOOST_CHECK_EQUAL((sequence(bad_maybes_3)), monad::nothing);
     BOOST_CHECK_EQUAL((sequence(good_maybes)), good_sequence);
 
-#if 0
+
     std::vector<int> empty_set;
 
     std::vector<int> set_123 = {1, 2, 3};
@@ -284,15 +269,15 @@ BOOST_AUTO_TEST_CASE(maybe)
         return x % 2 == 0 ? monad::maybe<double>{1.0 * x} : monad::nothing;
     };
 
-    monad::maybe<std::vector<int>> _123_sequence{{1, 2, 3}};
-    monad::maybe<std::vector<int>> _213_sequence{{2, 1, 3}};
-    monad::maybe<std::vector<int>> _231_sequence{{2, 3, 1}};
-    monad::maybe<std::vector<int>> _024_sequence{{0, 2, 4}};
-    monad::maybe<std::vector<int>> _204_sequence{{2, 0, 4}};
-    monad::maybe<std::vector<int>> _240_sequence{{2, 4, 0}};
-    monad::maybe<std::vector<double>> _024_sequence_double{{0.0, 2.0, 4.0}};
-    monad::maybe<std::vector<double>> _204_sequence_double{{2.0, 0.0, 4.0}};
-    monad::maybe<std::vector<double>> _240_sequence_double{{2.0, 4.0, 0.0}};
+    monad::maybe<monad::list<int>> _123_sequence{{1, 2, 3}};
+    monad::maybe<monad::list<int>> _213_sequence{{2, 1, 3}};
+    monad::maybe<monad::list<int>> _231_sequence{{2, 3, 1}};
+    monad::maybe<monad::list<int>> _024_sequence{{0, 2, 4}};
+    monad::maybe<monad::list<int>> _204_sequence{{2, 0, 4}};
+    monad::maybe<monad::list<int>> _240_sequence{{2, 4, 0}};
+    monad::maybe<monad::list<double>> _024_sequence_double{{0.0, 2.0, 4.0}};
+    monad::maybe<monad::list<double>> _204_sequence_double{{2.0, 0.0, 4.0}};
+    monad::maybe<monad::list<double>> _240_sequence_double{{2.0, 4.0, 0.0}};
 
     BOOST_CHECK_EQUAL((monad::map(map_nonzero, empty_set)), monad::nothing);
 
@@ -313,6 +298,7 @@ BOOST_AUTO_TEST_CASE(maybe)
     BOOST_CHECK_EQUAL((monad::map(map_even, set_240)), _240_sequence_double);
 
 
+#if 0
     // map_unzip
 
     auto map_unzip_nonzero = [](int x) {
@@ -355,6 +341,7 @@ BOOST_AUTO_TEST_CASE(maybe)
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_024)), _024_unzipped_sequence);
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_204)), _204_unzipped_sequence);
     BOOST_CHECK_EQUAL((monad::map_unzip(map_unzip_even, set_240)), _240_unzipped_sequence);
+#endif
 
 
     // fold
@@ -395,8 +382,8 @@ BOOST_AUTO_TEST_CASE(maybe)
         return x ? monad::maybe<bool>{true} : monad::nothing;
     };
 
-    monad::maybe<std::vector<int>> _13_sequence{{1, 3}};
-    monad::maybe<std::vector<int>> _31_sequence{{3, 1}};
+    monad::maybe<monad::list<int>> _13_sequence{{1, 3}};
+    monad::maybe<monad::list<int>> _31_sequence{{3, 1}};
 
     BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, empty_set)), monad::nothing);
 
@@ -419,7 +406,7 @@ BOOST_AUTO_TEST_CASE(maybe)
         return sum ? monad::maybe<double>{1.0 * sum} : monad::nothing;
     };
 
-    monad::maybe<std::vector<double>> _147_sequence_double{{1.0, 4.0, 7.0}};
+    monad::maybe<monad::list<double>> _147_sequence_double{{1.0, 4.0, 7.0}};
 
     BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, empty_set, set_024_float)), monad::nothing);
 
@@ -427,7 +414,6 @@ BOOST_AUTO_TEST_CASE(maybe)
     BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_123, set_neg_111_float)), monad::nothing);
     BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_213, set_neg_111_float)), monad::nothing);
     BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_231, set_neg_111_float)), monad::nothing);
-#endif
 }
 
 
@@ -582,10 +568,101 @@ BOOST_AUTO_TEST_CASE(list)
     BOOST_CHECK_EQUAL((sequence(maybes_list_2)), monad::nothing);
 
 
-    // TODO: Other tests go here.
+    std::vector<int> empty_set;
 
-    // TODO: Make sure to cover all differences in type that may be required
-    // by list's API and its associated monadic functions.
+    std::vector<int> set_123 = {1, 2, 3};
+    std::vector<int> set_213 = {2, 1, 3};
+    std::vector<int> set_231 = {2, 3, 1};
+    std::vector<int> set_024 = {0, 2, 4};
+    std::vector<int> set_204 = {2, 0, 4};
+    std::vector<int> set_240 = {2, 4, 0};
 
-    // TODO: Make sure to cover all empty set cases.
+
+    // map
+
+    auto map_nonzero = [](int x) {
+        return x ? monad::list<int>{x} : monad::list<int>{};
+    };
+    auto map_even = [](int x) {
+        return x % 2 == 0 ? monad::list<double>{1.0 * x} : monad::list<double>{};
+    };
+
+    monad::list<monad::list<int>> empty_sequence{};
+    monad::list<monad::list<double>> empty_sequence_double{};
+
+    monad::list<monad::list<int>> _123_sequence{{1, 2, 3}};
+    monad::list<monad::list<int>> _213_sequence{{2, 1, 3}};
+    monad::list<monad::list<int>> _231_sequence{{2, 3, 1}};
+    monad::list<monad::list<int>> _024_sequence{{0, 2, 4}};
+    monad::list<monad::list<int>> _204_sequence{{2, 0, 4}};
+    monad::list<monad::list<int>> _240_sequence{{2, 4, 0}};
+    monad::list<monad::list<double>> _024_sequence_double{{0.0, 2.0, 4.0}};
+    monad::list<monad::list<double>> _204_sequence_double{{2.0, 0.0, 4.0}};
+    monad::list<monad::list<double>> _240_sequence_double{{2.0, 4.0, 0.0}};
+
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, empty_set)), empty_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_123)), _123_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_213)), _213_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_231)), _231_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_024)), empty_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_204)), empty_sequence);
+    BOOST_CHECK_EQUAL((monad::map(map_nonzero, set_240)), empty_sequence);
+
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_123)), empty_sequence_double);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_213)), empty_sequence_double);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_231)), empty_sequence_double);
+
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_024)), _024_sequence_double);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_204)), _204_sequence_double);
+    BOOST_CHECK_EQUAL((monad::map(map_even, set_240)), _240_sequence_double);
+
+
+    // filter
+
+    auto filter_odd = [](int x) {
+        return monad::list<bool>{x % 2 == 1};
+    };
+    auto filter_flag_zero = [](int x) {
+        return x ? monad::list<bool>{true} : monad::list<bool>{};
+    };
+
+    monad::list<monad::list<int>> _13_sequence{{1, 3}};
+    monad::list<monad::list<int>> _31_sequence{{3, 1}};
+
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, empty_set)), empty_sequence);
+
+    BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_123)), _13_sequence);
+    BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_213)), _13_sequence);
+    BOOST_CHECK_EQUAL((monad::filter(filter_odd, set_231)), _31_sequence);
+
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, set_024)), empty_sequence);
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, set_204)), empty_sequence);
+    BOOST_CHECK_EQUAL((monad::filter(filter_flag_zero, set_240)), empty_sequence);
+
+
+    // zip
+
+    std::vector<float> set_neg_111_float = {-1.0f, -1.0f, -1.0f};
+    std::vector<float> set_024_float = {0.0f, 2.0f, 4.0f};
+
+    auto zip_sum_nonzero = [](int lhs, float rhs) {
+        float sum = lhs + rhs;
+        return sum ? monad::list<double>{1.0 * sum} : monad::list<double>{};
+    };
+
+    monad::list<monad::list<double>> _147_sequence_double{{1.0, 4.0, 7.0}};
+
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, empty_set, set_024_float)),
+                      empty_sequence_double);
+
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_123, set_024_float)),
+                      _147_sequence_double);
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_123, set_neg_111_float)),
+                      empty_sequence_double);
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_213, set_neg_111_float)),
+                      empty_sequence_double);
+    BOOST_CHECK_EQUAL((monad::zip(zip_sum_nonzero, set_231, set_neg_111_float)),
+                      empty_sequence_double);
 }
