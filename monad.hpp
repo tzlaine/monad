@@ -62,9 +62,6 @@ namespace monad {
         state_type state_;
     };
 
-    template <typename T>
-    using list = monad<T, detail::list_state>;
-
     // operator==().
     template <typename T, typename State>
     bool operator== (monad<T, State> lhs, monad<T, State> rhs)
@@ -148,7 +145,7 @@ namespace monad {
     // sequence :: Monad m => [m a] -> m [a]
     template <
         typename Iter,
-        typename List = list<typename Iter::value_type::value_type>,
+        typename List = std::vector<typename Iter::value_type::value_type>,
         typename State = typename Iter::value_type::state_type
     >
     monad<List, State> sequence (Iter first, Iter last)
@@ -172,7 +169,7 @@ namespace monad {
     template <
         typename Fn,
         typename Iter,
-        typename List = list<
+        typename List = std::vector<
             detail::mapped_value_type_t<Fn, Iter>
         >
     >
@@ -199,10 +196,10 @@ namespace monad {
     template <
         typename Fn,
         typename Iter,
-        typename FirstList = list<
+        typename FirstList = std::vector<
             typename detail::mapped_value_type_t<Fn, Iter>::first_type
         >,
-        typename SecondList = list<
+        typename SecondList = std::vector<
             typename detail::mapped_value_type_t<Fn, Iter>::second_type
         >
     >
@@ -222,13 +219,13 @@ namespace monad {
         auto mapped = map(f, first, last);
         using mapped_type = decltype(mapped);
         return mapped >>= [mapped](typename mapped_type::value_type mapped_list) {
-            std::size_t size = mapped_list.mutable_value().size();
+            std::size_t size = mapped_list.size();
             std::pair<FirstList, SecondList> data;
-            data.first.mutable_value().reserve(size);
-            data.second.mutable_value().reserve(size);
-            for (auto x : mapped_list.value()) {
-                data.first.mutable_value().push_back(x.first);
-                data.second.mutable_value().push_back(x.second);
+            data.first.reserve(size);
+            data.second.reserve(size);
+            for (auto x : mapped_list) {
+                data.first.push_back(x.first);
+                data.second.push_back(x.second);
             }
             return result_type{data, mapped.state()};
         };
@@ -245,7 +242,7 @@ namespace monad {
     template <
         typename Fn,
         typename Iter,
-        typename List = list<typename Iter::value_type>
+        typename List = std::vector<typename Iter::value_type>
     >
     auto filter (Fn f, Iter first, Iter last) ->
         monad<List, detail::state_type_t<decltype(f(*first))>>
@@ -264,8 +261,8 @@ namespace monad {
                 first == last ? result_type{List{}} : filter(f, first, last);
             return recursion_result >>= [=](List rest) {
                 if (keep) {
-                    rest.mutable_value().insert(
-                        rest.mutable_value().begin(),
+                    rest.insert(
+                        rest.begin(),
                         value
                     );
                 }
@@ -286,7 +283,7 @@ namespace monad {
         typename Fn,
         typename Iter1,
         typename Iter2,
-        typename List = list<
+        typename List = std::vector<
             detail::zip_value_type_t<Fn, Iter1, Iter2>
         >
     >

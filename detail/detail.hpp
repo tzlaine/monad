@@ -55,11 +55,6 @@ namespace monad { namespace detail {
         );
     }
 
-    struct list_state {};
-
-    bool operator== (list_state lhs, list_state rhs)
-    { return true; }
-
     template <
         typename Iter,
         typename Monad,
@@ -79,7 +74,7 @@ namespace monad { namespace detail {
             ++first;
             retval = m >>= [=](typename Monad::value_type x) {
                 return retval >>= [=](List list) {
-                    list.mutable_value().push_back(x);
+                    list.push_back(x);
                     return monad<List, State>{list};
                 };
             };
