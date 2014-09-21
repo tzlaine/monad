@@ -69,16 +69,22 @@ namespace monad { namespace detail {
 
         monad<List, State> retval{List{}};
 
+        detail::reserve(retval.mutable_value(), first, last);
+
+        Monad prev = f(first);
+        ++first;
+        retval.mutable_value().push_back(prev.value());
+
         while (first != last) {
             Monad m = f(first);
             ++first;
-            retval = m >>= [=](typename Monad::value_type x) {
-                return retval >>= [=](List list) {
-                    list.push_back(x);
-                    return monad<List, State>{list};
-                };
+            retval.mutable_value().push_back(m.value());
+            prev = prev >>= [=](typename Monad::value_type) {
+                return m;
             };
         }
+
+        retval.mutable_state() = prev.state();
 
         return retval;
     }

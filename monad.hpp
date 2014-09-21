@@ -251,24 +251,38 @@ namespace monad {
         using state_type = detail::state_type_t<monad_type>;
         using result_type = monad<List, state_type>;
 
-        if (first == last)
-            return result_type{};
+        result_type retval;
 
-        auto value = *first;
-        return f(value) >>= [=, &first](bool keep) {
+        if (first == last)
+            return retval;
+
+        detail::reserve(retval.mutable_value(), first, last);
+
+        auto prev_value = *first;
+        monad_type prev = f(prev_value);
+        ++first;
+
+        while (first != last) {
+            auto value = *first;
+            monad_type m = f(value);
             ++first;
-            auto recursion_result =
-                first == last ? result_type{List{}} : filter(f, first, last);
-            return recursion_result >>= [=](List rest) {
-                if (keep) {
-                    rest.insert(
-                        rest.begin(),
-                        value
-                    );
-                }
-                return result_type{rest};
+            prev = prev >>= [=, &retval](bool b) {
+                if (b)
+                    retval.mutable_value().push_back(prev_value);
+                return m;
             };
+            prev_value = value;
+        }
+
+        prev >>= [=, &retval](bool b) {
+            if (b)
+                retval.mutable_value().push_back(prev_value);
+            return prev;
         };
+
+        retval.mutable_state() = prev.state();
+
+        return retval;
     }
 
     template <typename Fn, typename Range>
